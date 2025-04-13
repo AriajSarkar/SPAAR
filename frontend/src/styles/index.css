@@ -1,0 +1,126 @@
+:root {
+  /* Heart-themed variables from your existing project */
+  --heart-blue-500: #3b82f6;
+  --heart-blue-700: #1e40af;
+  --heart-cyan-500: #06b6d4;
+  --heart-cyan-700: #0e7490;
+
+  /* System colors */
+  --background: 255 255 255;
+  --foreground: 20 20 20;
+  --card: 255 255 255;
+  --card-foreground: 20 20 20;
+  --popover: 255 255 255;
+  --popover-foreground: 20 20 20;
+  --primary: var(--heart-blue-500);
+  --primary-foreground: 255 255 255;
+  --secondary: 240 240 240;
+  --secondary-foreground: 20 20 20;
+  --muted: 240 240 240;
+  --muted-foreground: 120 120 120;
+  --accent: var(--heart-cyan-500);
+  --accent-foreground: 255 255 255;
+  --destructive: 220 50 50;
+  --destructive-foreground: 255 255 255;
+  --border: 240 240 240;
+  --input: 240 240 240;
+  --ring: var(--heart-blue-500);
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 20 20 20;
+  --foreground: 255 255 255;
+  --card: 30 30 30;
+  --card-foreground: 255 255 255;
+  --popover: 30 30 30;
+  --popover-foreground: 255 255 255;
+  --primary: var(--heart-blue-500);
+  --primary-foreground: 255 255 255;
+  --secondary: 40 40 40;
+  --secondary-foreground: 255 255 255;
+  --muted: 40 40 40;
+  --muted-foreground: 180 180 180;
+  --accent: var(--heart-cyan-500);
+  --accent-foreground: 255 255 255;
+  --destructive: 220 50 50;
+  --destructive-foreground: 255 255 255;
+  --border: 40 40 40;
+  --input: 40 40 40;
+  --ring: var(--heart-blue-700);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar for the chat interface */
+  .chat-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .chat-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted rounded-full;
+  }
+
+  .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1.5s linear infinite;
+}
+
+/* Message bubble animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+/* Typing indicator animation */
+@keyframes typing {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+.typing-dot {
+  animation: typing 1s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}

@@ -1,14 +1,12 @@
 "use client";
 
 import { FloatingNavbar } from "@/components/Navbar/FloatingNavbar";
-import { StatefulCursor } from "@/components/ui/cursor";
 import { useHoverCursor } from "@/components/ui/cursor";
 
 export default function Home() {
   return (
     <>
       <FloatingNavbar />
-      <StatefulCursor follow={false} color="var(--heart-blue-500)" />
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 pt-20">
         <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
           {/* HeartChat Logo/Title Section */}

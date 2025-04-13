@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Heart Chat - Modern AI Chatbot UI
 
-## Getting Started
+A beautiful, responsive chatbot interface built with Next.js (App Router), TypeScript, and Tailwind CSS v4, integrating with n8n for AI-powered conversations.
 
-First, run the development server:
+## 💙 Features
+
+- Modern, responsive UI with heart-themed styling
+- Support for ChatGPT and DeepSeek AI providers
+- Message streaming simulation for natural conversation flow
+- Light/dark mode with system preference detection and persistence
+- Integration with n8n webhooks for backend processing
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js](https://nextjs.org/) (App Router + TypeScript)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) - CSS-first approach (no `tailwind.config.js`)
+- **UI Components**:
+  - Custom shadcn/ui-inspired components
+  - Aceternity UI-inspired animated components
+- **Package Manager**: [pnpm](https://pnpm.io/)
+
+## 📋 Requirements
+
+- Node.js 16.8 or later
+- pnpm
+- n8n instance with webhook endpoint
+
+## 🚀 Getting Started
+
+### Installation
+
+1. Clone the repository and navigate to the project folder:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+cd frontend
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+```
+
+3. Create a `.env.local` file in the project root with your n8n webhook URL:
+
+```
+N8N_WEBHOOK_URL="https://your-n8n-instance/webhook/your-webhook-path"
+```
+
+### Development
+
+Start the development server:
+
+```bash
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Building for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Build the application for production:
 
-## Learn More
+```bash
+pnpm build
+```
 
-To learn more about Next.js, take a look at the following resources:
+Start the production server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎨 Customization
 
-## Deploy on Vercel
+The app uses a heart-themed color palette:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Token              | Light         | Dark      |
+| ------------------ | ------------- | --------- |
+| `--heart-blue-500` | `#3b82f6` (💙) | `#1e3a8a` |
+| `--heart-blue-700` | `#1e40af`     | `#111827` |
+| `--heart-cyan-500` | `#06b6d4` (🩵) | `#164e63` |
+| `--heart-cyan-700` | `#0e7490`     | `#0f4a5c` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+These colors are used throughout the UI and can be customized in `src/styles/globals.css`.
+
+## 📁 Project Structure
+
+```
+frontend/
+├── public/              # Static assets
+├── src/
+│   ├── app/             # App router pages
+│   │   ├── api/         # API routes
+│   │   ├── chat/        # Chat interface page
+│   │   └── layout.tsx   # Root layout with ThemeProvider
+│   ├── components/      # React components
+│   │   ├── Navbar/      # Navigation components
+│   │   ├── theme/       # Theme components
+│   │   └── ui/          # UI components
+│   ├── lib/             # Utility functions
+│   └── styles/          # Global CSS
+├── .env.local           # Environment variables (create this)
+└── package.json         # Project dependencies
+```
+
+## 🔧 n8n Integration
+
+The app expects your n8n webhook to:
+
+1. Accept a `msg` query parameter with the user's message
+2. Accept an optional `provider` query parameter ('chatgpt' or 'deepseek')
+3. Return a JSON response with a `response` property containing the AI's reply
+
+Configure your n8n workflow to process these inputs and return the appropriate response.
+
+## 📝 License
+
+MIT
