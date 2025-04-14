@@ -35,7 +35,6 @@ export async function GET(
     // Forward the request directly to the n8n webhook with increased timeout
     // Extending to 30 seconds to accommodate slower backend processing
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
     
     try {
       const response = await fetch(url, { 
@@ -46,8 +45,6 @@ export async function GET(
         signal: controller.signal
       });
       
-      // Clear the timeout since the request completed
-      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`Webhook responded with status: ${response.status}`);
@@ -56,7 +53,6 @@ export async function GET(
       const data = await response.json();
       return NextResponse.json(data);
     } catch (fetchError: any) {
-      clearTimeout(timeoutId);
       throw fetchError;
     }
     
