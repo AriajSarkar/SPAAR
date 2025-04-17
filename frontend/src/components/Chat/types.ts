@@ -1,42 +1,56 @@
+import { ReactNode } from 'react';
+
 /**
  * Type definitions for the Heart Chat components
  */
 
-/**
- * Represents a single chat message in the conversation
- */
-export interface Message {
-    id: string;
-    content: string;
-    sender: 'user' | 'bot';
-    timestamp: Date;
-    error?: boolean;
-    isRetryable?: boolean;
+// Message sender types
+export type MessageSender = 'user' | 'bot';
+
+// Chat message interface
+export interface ChatMessage {
+  id: string;
+  content: string;
+  sender: MessageSender;
+  timestamp: Date;
+  error?: boolean;
+  isRetryable?: boolean;
 }
 
 /**
  * Props for the ChatInput component
  */
 export interface ChatInputProps {
-    onSendMessage: (message: string) => void;
-    isLoading: boolean;
-    onCancel: () => void;
+  onSendMessage: (message: string) => void;
+  isLoading: boolean;
+  onCancel: () => void;
+  disabled?: boolean;
 }
 
 /**
  * Props for the MessagesContainer component
  */
 export interface MessagesContainerProps {
-    messages: Message[];
-    isLoading: boolean;
-    isStreaming: boolean;
-    currentStreamContent: string;
-    onRetry: (messageIndex: number) => void;
+  messages: ChatMessage[];
+  isLoading: boolean;
+  isStreaming: boolean;
+  currentStreamContent: string;
+  onRetry: (index: number) => void;
+  sessionId?: string | null;
 }
 
 /**
  * Props for the ChatContainer component
  */
 export interface ChatContainerProps {
-    children?: React.ReactNode;
+  children?: React.ReactNode;
+}
+
+/**
+ * Props for session management controls
+ */
+export interface SessionControlProps {
+  onClearConversation: () => void;
+  sessionId: string | null;
+  isLoading: boolean;
 }

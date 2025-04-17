@@ -15,7 +15,7 @@ def api_root(request):
             "history": "/api/v1/search/history/",
             "results": "/api/v1/search/results/{id}/",
             "llm": {
-                "generate": "/api/v1/llm/generate/ (always streams responses)",
+                "generate": "/api/v1/llm/generate/ - POST with JSON: {\"prompt\": \"Your question or request\", \"session_id\": \"optional-id\", \"include_history\": true}",
                 "history": "/api/v1/llm/conversation/{session_id}/",
                 "delete": "/api/v1/llm/conversation/{session_id}/delete/"
             }
