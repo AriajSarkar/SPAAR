@@ -1,0 +1,27 @@
+services:
+  n8n:
+    image: n8nio/n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    env_file:
+      - .env
+    environment:
+      - API_URL=http://django-search-api:8000
+      - API_HOST=django-search-api
+      - API_PORT=8000
+    volumes:
+      # Persist workflows, credentials, etc.
+      - n8n_data:/home/node/.n8n
+      # Mount the Aiven CA cert into the container
+      - ./pki:/opt/ca.pem:ro
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: ai-bot-network
+    external: true
+
+volumes:
+    n8n_data:
