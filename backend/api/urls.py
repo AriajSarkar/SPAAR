@@ -13,11 +13,17 @@ def api_root(request):
         "endpoints": {
             "search": "/api/v1/search/?q=your_query",
             "history": "/api/v1/search/history/",
-            "results": "/api/v1/search/results/{id}/"
+            "results": "/api/v1/search/results/{id}/",
+            "llm": {
+                "generate": "/api/v1/llm/generate/ (always streams responses)",
+                "history": "/api/v1/llm/conversation/{session_id}/",
+                "delete": "/api/v1/llm/conversation/{session_id}/delete/"
+            }
         }
     })
 
 urlpatterns = [
     path('', api_root, name='api-root'),
     path('v1/', include('scrapper.urls')),
+    path('v1/llm/', include('llm.urls', namespace='llm')),
 ]
