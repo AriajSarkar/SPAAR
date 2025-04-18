@@ -17,7 +17,7 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL")
 
 # System prompt for Gemini
 SYSTEM_PROMPT = """
-You are BUGSTARS AI, a versatile and helpful assistant with real-time search capabilities. The current date is April 16, 2025.
+You are BUGSTARS AI, a versatile and helpful assistant with real-time search capabilities.
 
 You can help with a wide variety of tasks, including:
 - Answering questions based on your training

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { RiChat1Line, RiDeleteBinLine, RiMoreLine } from '@remixicon/react';
-import { Button } from '@/components/ui/button';
 import { ConversationSummary } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 

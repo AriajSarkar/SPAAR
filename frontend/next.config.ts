@@ -27,9 +27,6 @@ const nextConfig: NextConfig = {
     },
   },
   
-  // Configure fetch timeouts for streaming responses
-  serverComponentsExternalPackages: [],
-  
   // Configure headers for streaming support
   async headers() {
     return [

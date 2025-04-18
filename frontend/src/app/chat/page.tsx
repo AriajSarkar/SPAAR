@@ -1,19 +1,17 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'motion/react';
-import { FloatingNavbar } from '@/components/Navbar/FloatingNavbar';
+import React, { useState, useEffect } from 'react';
 import { ChatInput } from '@/components/Chat/ChatInput';
 import { MessagesContainer } from '@/components/Chat/MessagesContainer';
 import { ChatSidebar } from '@/components/Chat/ChatSidebar';
 import { useChat } from '@/components/Chat/useChat';
-import { RiAddLine } from '@remixicon/react';
-import { Button } from '@/components/ui/button';
-import { FloatingTooltip } from '@/components/ui/tooltip/FloatingTooltip';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+import { RiMenuLine } from '@remixicon/react';
 
 /**
  * Main chat page component that brings together all chat-related components
- * Uses heart-themed styling for a consistent brand experience
+ * Fixed z-index and layout issues for proper responsiveness
  */
 export default function ChatPage() {
   // Use our custom hook for chat functionality
@@ -33,9 +31,18 @@ export default function ChatPage() {
     newChat
   } = useChat();
 
+  // State to track sidebar visibility
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
+
+  // Update sidebar state when screen size changes
+  useEffect(() => {
+    setIsSidebarOpen(!isMobile);
+  }, [isMobile]);
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Chat history sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#1a1a1a] dark:bg-[#1a1a1a]">
+      {/* Chat history sidebar (outside the main flex container) */}
       <ChatSidebar
         conversations={conversations}
         currentSessionId={sessionId}
@@ -43,58 +50,80 @@ export default function ChatPage() {
         onDeleteConversation={deleteConversation}
         onNewChat={newChat}
         isLoading={loadingConversations}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
       />
       
-      {/* Main chat interface */}
-      <div className="flex flex-col flex-1 h-full">
-        <FloatingNavbar />
-
-        {/* Fixed top header area */}
-        <div className="fixed top-0 left-0 right-0 pt-16 pb-2 bg-background/80 backdrop-blur-sm z-10 md:pl-64">
-          {/* Heart-themed gradient heading with subtle animation */}
-          <motion.div
-            className="flex items-center justify-between px-4 max-w-4xl mx-auto"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+      {/* Main chat interface - with proper margin when sidebar is open */}
+      <div 
+        className={`relative flex-1 flex flex-col h-screen w-full transition-all duration-300 ${
+          isSidebarOpen && !isMobile ? 'ml-64' : 'ml-0'
+        }`}
+      >
+        {/* Sidebar open button - visible on all screen sizes when sidebar is closed */}
+        {!isSidebarOpen && (
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="fixed top-4 left-4 z-40 p-2 rounded-md bg-[#111111] border border-gray-700 shadow-sm hover:bg-[#1e1e1e] transition-colors"
+            aria-label="Open sidebar"
           >
-            <h1 className="text-2xl font-bold mt-4 bg-gradient-to-r from-[var(--heart-blue-500)] to-[var(--heart-cyan-500)] inline-block text-transparent bg-clip-text">
-              Heart Chat
-            </h1>
-            
-            {/* New chat button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={newChat}
-              disabled={isLoading}
-              className="border border-[var(--heart-blue-500)]/40 hover:bg-[var(--heart-blue-500)]/10"
-            >
-              <RiAddLine className="mr-1 h-4 w-4" /> New Chat
-            </Button>
-          </motion.div>
+            <RiMenuLine className="h-5 w-5 text-gray-300" />
+          </button>
+        )}
+
+        {/* Theme toggle in top-right corner */}
+        <div className="absolute top-3 right-3 z-10">
+          <ThemeToggle />
         </div>
 
-        {/* Main content area with fixed header and footer */}
-        <main className="flex flex-col w-full h-full pt-[72px] pb-[140px] md:pl-64">
-          {/* Messages container component */}
-          <MessagesContainer
-            messages={messages}
-            isLoading={isLoading}
-            isStreaming={isStreaming}
-            currentStreamContent={currentStreamContent}
-            onRetry={handleRetry}
-            sessionId={sessionId}
-          />
-        </main>
+        {/* Empty state or messages area */}
+        <div className={`flex-1 overflow-hidden flex flex-col ${messages.length === 0 ? 'items-center justify-center' : ''}`}>
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center px-4 max-w-xl">
+              <div className="mb-6 w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
+                <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+                </svg>
+              </div>
+              <h1 className="text-2xl font-medium text-white mb-2">
+                Hi, I'm your AI Assistant.
+              </h1>
+              <p className="text-gray-400">
+                How can I help you today?
+              </p>
+            </div>
+          ) : (
+            <MessagesContainer
+              messages={messages}
+              isLoading={isLoading}
+              isStreaming={isStreaming}
+              currentStreamContent={currentStreamContent}
+              onRetry={handleRetry}
+              sessionId={sessionId}
+            />
+          )}
+        </div>
 
-        {/* Chat input component */}
-        <div className="md:pl-64">
-          <ChatInput
-            onSendMessage={sendMessage}
-            isLoading={isLoading}
-            onCancel={cancelResponse}
-          />
+        {/* Message input area - animates from center to bottom with messages */}
+        <div 
+          className={`w-full transition-all duration-500 ease-in-out ${
+            messages.length === 0 
+              ? 'absolute left-0 right-0 bottom-1/3 transform-gpu' 
+              : 'sticky bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-gray-800'
+          }`}
+        >
+          <div className="max-w-3xl mx-auto px-4 pb-6 relative">
+            <ChatInput
+              onSendMessage={sendMessage}
+              isLoading={isLoading}
+              onCancel={cancelResponse}
+            />
+            
+            {/* Footer notice */}
+            <div className="text-center mt-2">
+              <span className="text-xs text-gray-500">AI-generated content</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
