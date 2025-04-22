@@ -124,3 +124,21 @@
 .typing-dot:nth-child(3) {
   animation-delay: 0.4s;
 }
+
+/* Enhanced skeleton loading animation */
+@keyframes skeleton-pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+}
+
+/* Sliding animation for streaming skeleton indicator */
+@keyframes streamingSkeletonSlide {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(250%); }
+  100% { transform: translateX(-100%); }
+}

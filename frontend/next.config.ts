@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   env: {
-    N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   },
   
   // Configure async rewrites for API proxying
@@ -15,7 +15,28 @@ const nextConfig: NextConfig = {
       {
         // Proxy all /api/chat-proxy/* requests to the n8n webhook
         source: '/api/chat-proxy/:path*',
-        destination: `${process.env.N8N_WEBHOOK_URL}:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_BASE_URL}:path*`,
+      },
+    ];
+  },
+  
+  // Enable response streaming
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['*'], // Be careful with this in production
+    },
+  },
+  
+  // Configure headers for streaming support
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store' },
+          { key: 'Connection', value: 'keep-alive' },
+          { key: 'Transfer-Encoding', value: 'chunked' },
+        ],
       },
     ];
   },

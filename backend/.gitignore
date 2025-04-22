@@ -1,5 +1,18 @@
 pki/
 .env
 
+.venv/
+postman_collection.json
+postman_environment.json
 backend.json
 backend_working.json
+
+ca.pem
+
+__pycache__/
+*.py[cod]
+staticfiles/
+*.sqlite3
+*.db
+*.log
+static/

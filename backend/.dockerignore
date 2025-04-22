@@ -1,2 +1,6 @@
-.env
-pki/
+.venv/
+__pycache__/
+*.pyc
+
+postman_collection.json
+postman_environment.json

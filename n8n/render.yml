@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: n8n
+    env: docker
+    plan: starter  # Choose an appropriate plan based on your needs
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_HOST
+        sync: false  # This means the value will be set from Render dashboard
+      - key: DB_POSTGRESDB_PORT
+        sync: false  # This means the value will be set from Render dashboard
+      - key: DB_POSTGRESDB_DATABASE
+        sync: false  # This means the value will be set from Render dashboard
+      - key: DB_POSTGRESDB_USER
+        sync: false  # This means the value will be set from Render dashboard
+      - key: DB_POSTGRESDB_PASSWORD
+        sync: false  # This means the value will be set from Render dashboard
+      - key: DB_POSTGRESDB_SSL_CA
+        value: /home/node/aiven-ca.pem
+      - key: DB_POSTGRESDB_SSL_ENABLED
+        value: true
+      - key: DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED
+        value: false
+      - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+        value: true
+      - key: N8N_RUNNERS_ENABLED
+        value: true
+      - key: N8N_AUTH_EXCLUDE_ENDPOINTS
+        value: api
+      - key: TIMEZONEDB_API_KEY
+        sync: false  # Will be set from Render dashboard
+      - key: WEATHER_API_KEY
+        sync: false  # Will be set from Render dashboard
+      - key: OpenWEATHER_API_KEY
+        sync: false  # Will be set from Render dashboard
+      - key: OpenCage_API_KEY
+        sync: false  # Will be set from Render dashboard
+    disk:
+      name: n8n-data
+      mountPath: /home/node/.n8n
+      sizeGB: 2  # Adjust size as needed
+    secrets:
+      - name: AIVEN_CA
+        mountPath: /etc/secrets/aiven-ca.pem
