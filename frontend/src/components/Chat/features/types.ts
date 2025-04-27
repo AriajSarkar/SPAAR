@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
  * Type definitions for the Heart Chat components
  */
 
+
 // Message sender types
 export type MessageSender = 'user' | 'bot';
 

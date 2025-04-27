@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { RiAddLine, RiCloseLine, RiMenuLine, RiDeleteBinLine, RiMoreLine, RiChat1Line } from '@remixicon/react';
+import { RiAddLine, RiCloseLine, RiMenuLine, RiDeleteBinLine, RiMoreLine, RiChat1Line, RiLoader4Line } from '@remixicon/react';
 import { Button } from '@/components/ui/button';
 import { ConversationSummary } from '@/lib/api-client';
-import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -17,6 +17,7 @@ interface ChatSidebarProps {
   isLoading?: boolean;
   isOpen?: boolean;
   setIsOpen?: (isOpen: boolean) => void;
+  deletingConversations?: Record<string, boolean>; // Added to track deleting state
 }
 
 /**
@@ -30,7 +31,8 @@ export function ChatSidebar({
   onNewChat,
   isLoading = false,
   isOpen,
-  setIsOpen
+  setIsOpen,
+  deletingConversations = {} // Default to empty object
 }: ChatSidebarProps) {
   const isMobile = useMediaQuery('(max-width: 768px)');
   // Use prop-based open state if provided, otherwise use internal state
@@ -88,45 +90,50 @@ export function ChatSidebar({
           </Button>
         </div>
 
-        {/* Conversation groups */}
-        {Object.entries(groupedConversations).map(([period, convos]) => (
-          <div key={period} className="mt-4">
-            {/* Date grouping headers */}
-            <div className="px-3 mb-2">
-              <div className="text-xs font-medium text-gray-500">{period}</div>
-            </div>
+        {/* Conversation list with scroll container */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Conversation groups */}
+          {Object.entries(groupedConversations).map(([period, convos]) => (
+            <div key={period} className="mt-4">
+              {/* Date grouping headers */}
+              <div className="px-3 mb-2">
+                <div className="text-xs font-medium text-gray-500">{period}</div>
+              </div>
 
-            {/* Conversations in this group */}
-            <div className="px-2 space-y-1">
-              {convos.map((conversation) => (
-                <ConversationItem 
-                  key={conversation.id}
-                  conversation={conversation}
-                  isActive={conversation.id === currentSessionId}
-                  onClick={() => {
-                    onSelectConversation(conversation.id);
-                    if (isMobile) setSidebarOpen(false);
-                  }}
-                  onDelete={() => onDeleteConversation(conversation.id)}
-                />
-              ))}
+              {/* Conversations in this group */}
+              <div className="px-2 space-y-1">
+                {convos.map((conversation) => (
+                  <ConversationItem 
+                    key={conversation.id}
+                    conversation={conversation}
+                    isActive={conversation.id === currentSessionId}
+                    onClick={() => {
+                      onSelectConversation(conversation.id);
+                      if (isMobile) setSidebarOpen(false);
+                    }}
+                    onDelete={() => onDeleteConversation(conversation.id)}
+                    isDeleting={!!deletingConversations[conversation.id]}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-        
-        {/* Empty state */}
-        {conversations.length === 0 && !isLoading && (
-          <div className="flex-1 flex items-center justify-center text-gray-500 px-3">
-            <p className="text-sm">No conversations yet</p>
-          </div>
-        )}
-        
-        {/* Loading state */}
-        {isLoading && (
-          <div className="flex justify-center p-4">
-            <div className="w-24 h-4 bg-gray-700 rounded animate-pulse"></div>
-          </div>
-        )}
+          ))}
+          
+          {/* Empty state */}
+          {conversations.length === 0 && !isLoading && (
+            <div className="flex-1 flex items-center justify-center text-gray-500 px-3">
+              <p className="text-sm">No conversations yet</p>
+            </div>
+          )}
+          
+          {/* Loading state */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center p-4 gap-2">
+              <RiLoader4Line className="h-5 w-5 text-blue-500 animate-spin" />
+              <div className="text-sm text-gray-400">Loading conversations...</div>
+            </div>
+          )}
+        </div>
         
         {/* Footer area */}
         <div className="mt-auto p-3 border-t border-gray-800">
@@ -154,6 +161,14 @@ export function ChatSidebar({
  * Helper function to group conversations by time period
  */
 function groupConversationsByDate(conversations: ConversationSummary[]) {
+  // Create a copy to avoid mutating the original
+  const sortedConversations = [...conversations].sort((a, b) => {
+    // Sort by last message date (most recent first)
+    const dateA = a.lastMessageDate ? new Date(a.lastMessageDate).getTime() : 0;
+    const dateB = b.lastMessageDate ? new Date(b.lastMessageDate).getTime() : 0;
+    return dateB - dateA;
+  });
+  
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
@@ -173,7 +188,7 @@ function groupConversationsByDate(conversations: ConversationSummary[]) {
     'Older': []
   };
   
-  conversations.forEach(conversation => {
+  sortedConversations.forEach(conversation => {
     if (!conversation.lastMessageDate) {
       result['Today'].push(conversation);
       return;
@@ -208,9 +223,16 @@ interface ConversationItemProps {
   isActive: boolean;
   onClick: () => void;
   onDelete: () => void;
+  isDeleting?: boolean;
 }
 
-function ConversationItem({ conversation, isActive, onClick, onDelete }: ConversationItemProps) {
+function ConversationItem({ 
+  conversation, 
+  isActive, 
+  onClick, 
+  onDelete,
+  isDeleting = false
+}: ConversationItemProps) {
   const [showDelete, setShowDelete] = useState(false);
   
   // Format date to be more readable and dynamic
@@ -244,49 +266,76 @@ function ConversationItem({ conversation, isActive, onClick, onDelete }: Convers
   // Get truncated title
   const title = conversation.title || 'New conversation';
   const truncatedTitle = title.length > 28 ? `${title.substring(0, 28)}...` : title;
+  
+  // Reset delete confirm if deleting starts
+  useEffect(() => {
+    if (isDeleting) {
+      setShowDelete(false);
+    }
+  }, [isDeleting]);
 
   return (
     <div
       className={cn(
-        'group flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-gray-800/70',
+        'group flex items-center px-3 py-2 rounded-md cursor-pointer hover:bg-gray-800/70 relative',
         isActive && 'bg-gray-800'
       )}
-      onClick={onClick}
+      onClick={isDeleting ? undefined : onClick}
     >
       {/* Chat icon */}
-      <RiChat1Line className="h-4 w-4 text-gray-400 flex-shrink-0 mr-2" />
+      <RiChat1Line className={cn(
+        "h-4 w-4 text-gray-400 flex-shrink-0 mr-2",
+        isDeleting && "text-gray-600"
+      )} />
       
       {/* Title */}
       <div className="flex-1 min-w-0 overflow-hidden">
-        <p className="text-sm text-gray-200 truncate">
+        <p className={cn(
+          "text-sm text-gray-200 truncate", 
+          isDeleting && "text-gray-500"
+        )}>
           {truncatedTitle}
         </p>
         {conversation.lastMessageDate && (
-          <p className="text-xs text-gray-500 mt-0.5 truncate">
-            {formatDate(conversation.lastMessageDate)}
+          <p className={cn(
+            "text-xs text-gray-500 mt-0.5 truncate",
+            isDeleting && "text-gray-700"
+          )}>
+            {isDeleting ? 'Deleting...' : formatDate(conversation.lastMessageDate)}
           </p>
         )}
       </div>
 
       {/* Delete button */}
-      <div 
-        className="ml-2" 
-        onClick={(e) => {
-          e.stopPropagation();
-          if (showDelete) {
-            onDelete();
-            setShowDelete(false);
-          } else {
-            setShowDelete(true);
-          }
-        }}
-      >
-        {showDelete ? (
-          <RiDeleteBinLine className="h-4 w-4 text-red-400 hover:text-red-300" />
-        ) : (
-          <RiMoreLine className="h-4 w-4 text-gray-500 opacity-0 group-hover:opacity-100" />
-        )}
-      </div>
+      {isDeleting ? (
+        <div className="ml-2">
+          <RiLoader4Line className="h-4 w-4 text-gray-500 animate-spin" />
+        </div>
+      ) : (
+        <div 
+          className="ml-2" 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (showDelete) {
+              onDelete();
+              setShowDelete(false);
+            } else {
+              setShowDelete(true);
+            }
+          }}
+        >
+          {showDelete ? (
+            <RiDeleteBinLine className="h-4 w-4 text-red-400 hover:text-red-300" />
+          ) : (
+            <RiMoreLine className="h-4 w-4 text-gray-500 opacity-0 group-hover:opacity-100" />
+          )}
+        </div>
+      )}
+      
+      {/* Gray overlay for deleting state */}
+      {isDeleting && (
+        <div className="absolute inset-0 bg-black/20 rounded-md pointer-events-none" />
+      )}
     </div>
   );
 }

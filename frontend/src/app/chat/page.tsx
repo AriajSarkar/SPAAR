@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ChatInput } from '@/components/Chat/ChatInput';
-import { MessagesContainer } from '@/components/Chat/MessagesContainer';
+import { ChatInput } from '@/components/Chat/features/ChatInput';
+import { MessagesContainer } from '@/components/Chat/features/MessagesContainer';
 import { ChatSidebar } from '@/components/Chat/ChatSidebar';
 import { useChat } from '@/components/Chat/useChat';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { RiMenuLine } from '@remixicon/react';
 
 /**
