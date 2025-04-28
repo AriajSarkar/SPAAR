@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "motion/react";
-import { cn } from "@/lib/utils";
-import { FloatingTooltipProps } from "../types";
-import { getAnimationVariants, springConfigs, getArrowStyles, calculateTooltipPosition } from "../utils";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from 'motion/react';
+import { cn } from '@/lib/utils';
+import { FloatingTooltipProps } from '../types';
+import { getAnimationVariants, springConfigs, getArrowStyles, calculateTooltipPosition } from '../utils';
 
 /**
  * FloatingTooltip component for displaying tooltips on hover
@@ -12,7 +12,7 @@ import { getAnimationVariants, springConfigs, getArrowStyles, calculateTooltipPo
  */
 export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
     content,
-    position = "top",
+    position = 'top',
     children,
     className,
     showArrow = true,
@@ -23,7 +23,7 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
     textColor,
     borderColor,
     cursorMode = false,
-    cursorAnimation = "spring"
+    cursorAnimation = 'spring',
 }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [isPositioned, setIsPositioned] = useState(false);
@@ -45,8 +45,8 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
     const springY = useSpring(mouseY, springConfigs[cursorAnimation]);
 
     // Transform the tooltip position with offset from cursor
-    const tooltipX = useTransform(springX, x => x + (cursorMode ? 20 : 0));
-    const tooltipY = useTransform(springY, y => y + (cursorMode ? -10 : 0));
+    const tooltipX = useTransform(springX, (x) => x + (cursorMode ? 20 : 0));
+    const tooltipY = useTransform(springY, (y) => y + (cursorMode ? -10 : 0));
 
     // Store the initial position of the trigger element on mount
     useEffect(() => {
@@ -72,11 +72,7 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
     }, [cursorMode, mouseX, mouseY, offset, position, initialPosition]);
 
     // Calculate initial position based on element and position
-    const calculateInitialPosition = (
-        rect: DOMRect,
-        position: string,
-        offset: number
-    ) => {
+    const calculateInitialPosition = (rect: DOMRect, position: string, offset: number) => {
         const originX = rect.left + rect.width / 2;
         const originY = rect.top + rect.height / 2;
         let x = originX;
@@ -84,24 +80,24 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
 
         // Approximate position based on specified position
         switch (position) {
-            case "top":
+            case 'top':
                 y = rect.top - offset;
                 break;
-            case "top-right":
+            case 'top-right':
                 x = rect.right;
                 y = rect.top - offset;
                 break;
-            case "top-left":
+            case 'top-left':
                 x = rect.left;
                 y = rect.top - offset;
                 break;
-            case "right":
+            case 'right':
                 x = rect.right + offset;
                 break;
-            case "bottom":
+            case 'bottom':
                 y = rect.bottom + offset;
                 break;
-            case "left":
+            case 'left':
                 x = rect.left - offset;
                 break;
         }
@@ -140,12 +136,7 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
         setOriginCoords({ x: originX, y: originY });
 
         // Calculate tooltip position
-        const { x, y } = calculateTooltipPosition(
-            triggerRect,
-            tooltipRect,
-            position,
-            offset
-        );
+        const { x, y } = calculateTooltipPosition(triggerRect, tooltipRect, position, offset);
 
         setCoords({ x, y });
         setIsPositioned(true);
@@ -249,12 +240,12 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
                 updatePosition();
             };
 
-            window.addEventListener("resize", handleResize);
-            window.addEventListener("scroll", handleResize, true);
+            window.addEventListener('resize', handleResize);
+            window.addEventListener('scroll', handleResize, true);
 
             return () => {
-                window.removeEventListener("resize", handleResize);
-                window.removeEventListener("scroll", handleResize, true);
+                window.removeEventListener('resize', handleResize);
+                window.removeEventListener('scroll', handleResize, true);
             };
         }
     }, [isVisible, updatePosition]);
@@ -275,24 +266,24 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
                 top: 0,
                 x: tooltipX,
                 y: tooltipY,
-                backgroundColor: backgroundColor || "var(--background)",
-                color: textColor || "var(--foreground)",
-                border: `1px solid ${borderColor || "var(--heart-cyan-500)"}`,
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                willChange: "transform, opacity" as const,
-                visibility: isPositioned ? "visible" as const : "hidden" as const,
+                backgroundColor: backgroundColor || 'var(--background)',
+                color: textColor || 'var(--foreground)',
+                border: `1px solid ${borderColor || 'var(--heart-cyan-500)'}`,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                willChange: 'transform, opacity' as const,
+                visibility: isPositioned ? ('visible' as const) : ('hidden' as const),
             } as const;
         }
 
         return {
-            backgroundColor: backgroundColor || "var(--background)",
-            color: textColor || "var(--foreground)",
-            border: `1px solid ${borderColor || "var(--heart-cyan-500)"}`,
+            backgroundColor: backgroundColor || 'var(--background)',
+            color: textColor || 'var(--foreground)',
+            border: `1px solid ${borderColor || 'var(--heart-cyan-500)'}`,
             left: coords.x,
             top: coords.y,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-            willChange: "transform, opacity" as const,
-            visibility: isPositioned ? "visible" as const : "hidden" as const,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            willChange: 'transform, opacity' as const,
+            visibility: isPositioned ? ('visible' as const) : ('hidden' as const),
         } as const;
     };
 
@@ -314,10 +305,10 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
                     <motion.div
                         ref={tooltipRef}
                         className={cn(
-                            "fixed z-[9999] max-w-[280px] whitespace-normal break-words rounded-md px-3 py-1.5",
-                            "text-sm shadow-lg pointer-events-none hardware-accelerated",
-                            cursorMode && "tooltip-cursor",
-                            className
+                            'fixed z-[9999] max-w-[280px] whitespace-normal break-words rounded-md px-3 py-1.5',
+                            'text-sm shadow-lg pointer-events-none hardware-accelerated',
+                            cursorMode && 'tooltip-cursor',
+                            className,
                         )}
                         initial="hidden"
                         animate="visible"

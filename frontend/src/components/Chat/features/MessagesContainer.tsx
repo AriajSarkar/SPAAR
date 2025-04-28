@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useRef, useEffect } from 'react';
 import { ChatMessage, MessageSkeleton } from '@/components/Chat/ChatMessage';
@@ -16,7 +16,7 @@ export const MessagesContainer = ({
     isLoading,
     isStreaming,
     currentStreamContent,
-    onRetry
+    onRetry,
 }: MessagesContainerProps) => {
     // Refs for scrolling
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -32,10 +32,7 @@ export const MessagesContainer = ({
     return (
         <div className="flex-1 overflow-hidden w-full">
             {/* Simple container with no animations */}
-            <div
-                ref={chatContainerRef}
-                className="h-full overflow-y-auto"
-            >
+            <div ref={chatContainerRef} className="h-full overflow-y-auto">
                 <div className="flex flex-col">
                     {messages.map((msg, index) => (
                         <div key={msg.id} className="w-full">
@@ -47,9 +44,7 @@ export const MessagesContainer = ({
                                 }
                                 sender={msg.sender}
                                 timestamp={msg.timestamp}
-                                isStreaming={
-                                    isStreaming && msg.id === messages[messages.length - 1].id
-                                }
+                                isStreaming={isStreaming && msg.id === messages[messages.length - 1].id}
                                 error={msg.error}
                             />
 
@@ -70,9 +65,7 @@ export const MessagesContainer = ({
                     ))}
 
                     {/* Skeleton loading when waiting for AI response */}
-                    {isLoading && !isStreaming && (
-                        <MessageSkeleton />
-                    )}
+                    {isLoading && !isStreaming && <MessageSkeleton />}
 
                     {/* Auto-scroll anchor */}
                     <div ref={messageEndRef} />

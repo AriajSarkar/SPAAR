@@ -1,187 +1,169 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { useAuth } from "@/lib/auth/AuthContext";
-import { FloatingNavbar } from "@/components/Navbar/FloatingNavbar";
-import { div } from "motion/react-client";
+import React, { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { FloatingNavbar } from '@/components/Navbar/FloatingNavbar';
+import { div } from 'motion/react-client';
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const { user, loading, logout, error: authError, refreshUserProfile } = useAuth();
-  const [localLoading, setLocalLoading] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
-  const [hasRefreshed, setHasRefreshed] = useState(false);
-  
-  // Check authentication status on mount
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-      return;
-    }
-    
-    // Only refresh user profile once when the component mounts and user exists
-    if (user && !hasRefreshed && !loading) {
-      refreshUserProfile();
-      setHasRefreshed(true);
-    }
-  }, [loading, user, router, hasRefreshed]);
+    const router = useRouter();
+    const { user, loading, logout, error: authError, refreshUserProfile } = useAuth();
+    const [localLoading, setLocalLoading] = useState(false);
+    const [localError, setLocalError] = useState<string | null>(null);
+    const [hasRefreshed, setHasRefreshed] = useState(false);
 
-  // Handle manual refresh with proper error handling
-  const handleManualRefresh = useCallback(async () => {
-    setLocalLoading(true);
-    try {
-      await refreshUserProfile();
-    } catch (err) {
-      setLocalError("Failed to refresh profile. Please try again.");
-      console.error("Profile refresh error:", err);
-    } finally {
-      setLocalLoading(false);
-    }
-  }, [refreshUserProfile]);
+    // Check authentication status on mount
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+            return;
+        }
 
-  // Handle logout
-  const handleLogout = async () => {
-    setLocalLoading(true);
-    try {
-      await logout();
-      // Logout will redirect to login page via the AuthContext
-    } catch (err) {
-      setLocalError("Failed to log out. Please try again.");
-      console.error("Logout error:", err);
-    } finally {
-      setLocalLoading(false);
-    }
-  };
+        // Only refresh user profile once when the component mounts and user exists
+        if (user && !hasRefreshed && !loading) {
+            refreshUserProfile();
+            setHasRefreshed(true);
+        }
+    }, [loading, user, router, hasRefreshed]);
 
-  return (
-    <div>
-    <div className="fixed top-0 left-0 w-full z-50">
-      <FloatingNavbar />
-    </div>
-    <div className="min-h-screen bg-background p-4 pt-24">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <Link 
-            href="/chat" 
-            className="text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground"
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              className="mr-1"
-            >
-              <path d="m15 18-6-6 6-6"></path>
-            </svg>
-            Back to Chat
-          </Link>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleLogout}
-            disabled={localLoading || loading}
-          >
-            {localLoading ? "Logging out..." : "Log out"}
-          </Button>
-        </div>
+    // Handle manual refresh with proper error handling
+    const handleManualRefresh = useCallback(async () => {
+        setLocalLoading(true);
+        try {
+            await refreshUserProfile();
+        } catch (err) {
+            setLocalError('Failed to refresh profile. Please try again.');
+            console.error('Profile refresh error:', err);
+        } finally {
+            setLocalLoading(false);
+        }
+    }, [refreshUserProfile]);
 
-        {(localError || authError) && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-md text-destructive">
-            {localError || authError}
-          </div>
-        )}
+    // Handle logout
+    const handleLogout = async () => {
+        setLocalLoading(true);
+        try {
+            await logout();
+            // Logout will redirect to login page via the AuthContext
+        } catch (err) {
+            setLocalError('Failed to log out. Please try again.');
+            console.error('Logout error:', err);
+        } finally {
+            setLocalLoading(false);
+        }
+    };
 
-        <h1 className="text-2xl font-bold mb-6">Your Profile</h1>
-
-        {loading || localLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin h-8 w-8 border-t-2 border-l-2 border-[color:var(--heart-blue-500)] rounded-full"></div>
-          </div>
-        ) : user ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="p-6 bg-card">
-              <h2 className="text-lg font-medium mb-4">Account Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground block mb-1">
-                    Email
-                  </label>
-                  <div className="font-medium">{user.email}</div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground block mb-1">
-                    Full Name
-                  </label>
-                  <div className="font-medium">
-                    {user.first_name} {user.last_name}
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground block mb-1">
-                    User ID
-                  </label>
-                  <div className="text-sm font-mono bg-muted p-2 rounded">
-                    {user.id}
-                  </div>
-                </div>
-                
-                {user.created_at && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground block mb-1">
-                      Account Created
-                    </label>
-                    <div className="text-sm">
-                      {new Date(user.created_at).toLocaleDateString()} at{" "}
-                      {new Date(user.created_at).toLocaleTimeString()}
+    return (
+        <div>
+            <div className="fixed top-0 left-0 w-full z-50">
+                <FloatingNavbar />
+            </div>
+            <div className="min-h-screen bg-background p-4 pt-24">
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex items-center justify-between mb-8">
+                        <Link
+                            href="/chat"
+                            className="text-sm flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-1"
+                            >
+                                <path d="m15 18-6-6 6-6"></path>
+                            </svg>
+                            Back to Chat
+                        </Link>
+                        <Button variant="outline" size="sm" onClick={handleLogout} disabled={localLoading || loading}>
+                            {localLoading ? 'Logging out...' : 'Log out'}
+                        </Button>
                     </div>
-                  </div>
-                )}
-              </div>
-            </Card>
-            
-            <Card className="p-6 bg-card">
-              <h2 className="text-lg font-medium mb-4">Chat Activity</h2>
-              <div className="flex flex-col items-center justify-center h-40 text-center">
-                <p className="text-muted-foreground mb-4">
-                  View your recent chat conversations
-                </p>
-                <Button 
-                  variant="default" 
-                  size="sm"
-                  onClick={() => router.push("/chat")}
-                >
-                  Go to Chat
-                </Button>
-              </div>
-            </Card>
-          </div>
-        ) : (
-          <Card className="p-6 bg-card text-center">
-            <p className="mb-4">Failed to load profile information</p>
-            <Button 
-              variant="default" 
-              size="sm"
-              onClick={handleManualRefresh}
-              disabled={localLoading}
-            >
-              Try Again
-            </Button>
-          </Card>
-        )}
-      </div>
-    </div>
-    </div>
-  );
+
+                    {(localError || authError) && (
+                        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-md text-destructive">
+                            {localError || authError}
+                        </div>
+                    )}
+
+                    <h1 className="text-2xl font-bold mb-6">Your Profile</h1>
+
+                    {loading || localLoading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="animate-spin h-8 w-8 border-t-2 border-l-2 border-[color:var(--heart-blue-500)] rounded-full"></div>
+                        </div>
+                    ) : user ? (
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <Card className="p-6 bg-card">
+                                <h2 className="text-lg font-medium mb-4">Account Information</h2>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground block mb-1">
+                                            Email
+                                        </label>
+                                        <div className="font-medium">{user.email}</div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground block mb-1">
+                                            Full Name
+                                        </label>
+                                        <div className="font-medium">
+                                            {user.first_name} {user.last_name}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-sm font-medium text-muted-foreground block mb-1">
+                                            User ID
+                                        </label>
+                                        <div className="text-sm font-mono bg-muted p-2 rounded">{user.id}</div>
+                                    </div>
+
+                                    {user.created_at && (
+                                        <div>
+                                            <label className="text-sm font-medium text-muted-foreground block mb-1">
+                                                Account Created
+                                            </label>
+                                            <div className="text-sm">
+                                                {new Date(user.created_at).toLocaleDateString()} at{' '}
+                                                {new Date(user.created_at).toLocaleTimeString()}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+
+                            <Card className="p-6 bg-card">
+                                <h2 className="text-lg font-medium mb-4">Chat Activity</h2>
+                                <div className="flex flex-col items-center justify-center h-40 text-center">
+                                    <p className="text-muted-foreground mb-4">View your recent chat conversations</p>
+                                    <Button variant="default" size="sm" onClick={() => router.push('/chat')}>
+                                        Go to Chat
+                                    </Button>
+                                </div>
+                            </Card>
+                        </div>
+                    ) : (
+                        <Card className="p-6 bg-card text-center">
+                            <p className="mb-4">Failed to load profile information</p>
+                            <Button variant="default" size="sm" onClick={handleManualRefresh} disabled={localLoading}>
+                                Try Again
+                            </Button>
+                        </Card>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 }

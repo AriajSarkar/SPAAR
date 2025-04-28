@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,20 +14,16 @@ import { RiSendPlaneFill, RiCloseLine, RiAttachmentLine } from '@remixicon/react
  * Designed to appear in center when no messages, and animate to bottom with messages
  * Now checks for authenticated state before allowing input
  */
-export const ChatInput = ({
-    onSendMessage,
-    isLoading,
-    onCancel
-}: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, isLoading, onCancel }: ChatInputProps) => {
     // Input state
     const [input, setInput] = useState('');
-    
+
     // Get authentication state
     const { isAuthenticated } = useAuth();
-    
+
     // Show login prompt state - becomes true only when user tries to input
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-    
+
     // Ref for textarea element
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -54,13 +50,13 @@ export const ChatInput = ({
     // Handle form submission
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Check if user is authenticated before submitting
         if (!isAuthenticated) {
             setShowLoginPrompt(true);
             return;
         }
-        
+
         if (!input.trim() || isLoading) return;
         onSendMessage(input);
         setInput('');
@@ -82,7 +78,7 @@ export const ChatInput = ({
             setShowLoginPrompt(true);
             return;
         }
-        
+
         setInput(e.target.value);
     };
 
@@ -161,10 +157,10 @@ export const ChatInput = ({
                                 size="icon"
                                 disabled={!input.trim()}
                                 className={cn(
-                                  "p-1.5 rounded-md",
-                                  input.trim()
-                                    ? "text-foreground hover:bg-muted cursor-pointer"
-                                    : "text-muted-foreground/50 cursor-default"
+                                    'p-1.5 rounded-md',
+                                    input.trim()
+                                        ? 'text-foreground hover:bg-muted cursor-pointer'
+                                        : 'text-muted-foreground/50 cursor-default',
                                 )}
                                 aria-label="Send message"
                             >

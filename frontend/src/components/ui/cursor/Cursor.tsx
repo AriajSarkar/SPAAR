@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useRef, memo } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { isTouchDevice } from "@/lib/utils";
+import { useEffect, useState, useRef, memo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { isTouchDevice } from '@/lib/utils';
 
 /**
  * Interface for Cursor component props
@@ -29,18 +29,18 @@ interface CursorProps {
 /**
  * Custom cursor component with heart-themed styling and animations
  * Optimized for performance with direct DOM manipulation
- * 
+ *
  * @param props - Cursor configuration props
  */
 export const Cursor = memo(function Cursor({
     follow = false,
     size = 32,
     thickness = 3,
-    color = "var(--heart-blue-500)",
+    color = 'var(--heart-blue-500)',
     tooltipContent = null,
-    tooltipBgColor = "var(--background)",
-    tooltipTextColor = "var(--foreground)",
-    disabled = false
+    tooltipBgColor = 'var(--background)',
+    tooltipTextColor = 'var(--foreground)',
+    disabled = false,
 }: CursorProps) {
     // Refs for direct DOM manipulation (better performance than state)
     const cursorRef = useRef<HTMLDivElement>(null);
@@ -51,7 +51,7 @@ export const Cursor = memo(function Cursor({
     const [visible, setVisible] = useState(false);
     const [isTouch, setIsTouch] = useState(false);
     const [textHeight, setTextHeight] = useState(20); // Default text height in px
-    const [tapAnimations, setTapAnimations] = useState<Array<{ id: number, x: number, y: number }>>([]);
+    const [tapAnimations, setTapAnimations] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
     // Using refs for tracking values without triggering re-renders
     const nextTapId = useRef(0);
@@ -129,20 +129,17 @@ export const Cursor = memo(function Cursor({
 
             // Apply transforms directly to DOM for optimal performance
             if (cursorRef.current) {
-                cursorRef.current.style.transform =
-                    `translate3d(${state.x}px, ${state.y}px, 0) translate(-50%, -50%) scale(${state.scale})`;
+                cursorRef.current.style.transform = `translate3d(${state.x}px, ${state.y}px, 0) translate(-50%, -50%) scale(${state.scale})`;
             }
 
             // Update tooltip position if visible
             if (tooltipRef.current && tooltipContent) {
-                tooltipRef.current.style.transform =
-                    `translate3d(${state.x + size / 1.5}px, ${state.y}px, 0) translate(0, -50%)`;
+                tooltipRef.current.style.transform = `translate3d(${state.x + size / 1.5}px, ${state.y}px, 0) translate(0, -50%)`;
             }
 
             // Update text cursor position and opacity if visible
             if (textCursorRef.current) {
-                textCursorRef.current.style.transform =
-                    `translate3d(${state.x}px, ${state.y}px, 0) translate(-50%, -50%)`;
+                textCursorRef.current.style.transform = `translate3d(${state.x}px, ${state.y}px, 0) translate(-50%, -50%)`;
                 textCursorRef.current.style.opacity = state.isHoveringText ? '1' : '0';
             }
 
@@ -234,11 +231,11 @@ export const Cursor = memo(function Cursor({
             // Only create tap animation if not hovering text
             if (!cursorState.current.isHoveringText) {
                 const tapId = nextTapId.current++;
-                setTapAnimations(prev => [...prev, { id: tapId, x: e.clientX, y: e.clientY }]);
+                setTapAnimations((prev) => [...prev, { id: tapId, x: e.clientX, y: e.clientY }]);
 
                 // Auto-remove tap animation after it completes
                 setTimeout(() => {
-                    setTapAnimations(prev => prev.filter(tap => tap.id !== tapId));
+                    setTapAnimations((prev) => prev.filter((tap) => tap.id !== tapId));
                 }, 700);
             }
         };
@@ -302,12 +299,12 @@ export const Cursor = memo(function Cursor({
                 style={{
                     width: size,
                     height: size,
-                    borderRadius: "50%",
+                    borderRadius: '50%',
                     top: 0,
                     left: 0,
                     opacity: visible ? 1 : 0,
-                    transition: "opacity 0.15s ease",
-                    transform: "translate3d(0px, 0px, 0) translate(-50%, -50%) scale(1)"
+                    transition: 'opacity 0.15s ease',
+                    transform: 'translate3d(0px, 0px, 0) translate(-50%, -50%) scale(1)',
                 }}
             >
                 {/* Outer ring for thicker appearance */}
@@ -331,7 +328,7 @@ export const Cursor = memo(function Cursor({
 
             {/* Tap animations with Framer Motion */}
             <AnimatePresence>
-                {tapAnimations.map(tap => (
+                {tapAnimations.map((tap) => (
                     <motion.div
                         key={tap.id}
                         className="fixed pointer-events-none z-[99998]"
@@ -343,18 +340,18 @@ export const Cursor = memo(function Cursor({
                             backgroundColor: color,
                             x: tap.x,
                             y: tap.y,
-                            translateX: "-50%",
-                            translateY: "-50%"
+                            translateX: '-50%',
+                            translateY: '-50%',
                         }}
                         initial={{ scale: 0.8, opacity: 0.8 }}
                         animate={{
                             scale: [0.8, 1.5, 0.6],
-                            opacity: [0.8, 0.6, 0]
+                            opacity: [0.8, 0.6, 0],
                         }}
                         transition={{
                             duration: 0.6,
                             ease: [0.16, 1, 0.3, 1],
-                            times: [0, 0.5, 1]
+                            times: [0, 0.5, 1],
                         }}
                     />
                 ))}
@@ -367,8 +364,8 @@ export const Cursor = memo(function Cursor({
                     className="fixed pointer-events-none z-[99999] hardware-accelerated"
                     style={{
                         opacity: visible ? 1 : 0,
-                        transition: "opacity 0.15s ease",
-                        transform: "translate3d(0px, 0px, 0) translate(0, -50%)"
+                        transition: 'opacity 0.15s ease',
+                        transform: 'translate3d(0px, 0px, 0) translate(0, -50%)',
                     }}
                 >
                     <div
@@ -377,9 +374,9 @@ export const Cursor = memo(function Cursor({
                             backgroundColor: tooltipBgColor,
                             color: tooltipTextColor,
                             borderColor: color,
-                            borderWidth: "1px",
-                            minWidth: "max-content",
-                            maxWidth: "280px"
+                            borderWidth: '1px',
+                            minWidth: 'max-content',
+                            maxWidth: '280px',
                         }}
                     >
                         {tooltipContent}
@@ -393,7 +390,7 @@ export const Cursor = memo(function Cursor({
                 className="text-cursor fixed pointer-events-none z-[99998] hardware-accelerated"
                 style={{
                     opacity: 0,
-                    transform: "translate3d(0px, 0px, 0) translate(-50%, -50%)"
+                    transform: 'translate3d(0px, 0px, 0) translate(-50%, -50%)',
                 }}
             >
                 <div
@@ -402,7 +399,7 @@ export const Cursor = memo(function Cursor({
                         height: `${textHeight}px`,
                         width: `${thickness}px`,
                         backgroundColor: color,
-                        animation: "textCursorBlink 1s ease-in-out infinite"
+                        animation: 'textCursorBlink 1s ease-in-out infinite',
                     }}
                 />
             </div>

@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { motion } from "motion/react";
-import { ThemeToggle } from "../theme/ThemeToggle";
-import Link from "next/link";
-import { RiRobot2Line, RiMessage3Line, RiUser3Line, RiLogoutBoxRLine } from "@remixicon/react";
-import { usePathname, useRouter } from "next/navigation";
-import { Button } from "../ui/button";
-import { useAuth } from "@/lib/auth/AuthContext";
+import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
+import { ThemeToggle } from '../theme/ThemeToggle';
+import Link from 'next/link';
+import { RiRobot2Line, RiMessage3Line, RiUser3Line, RiLogoutBoxRLine } from '@remixicon/react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button } from '../ui/button';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 /**
  * Floating navigation bar inspired by Aceternity UI
@@ -20,15 +20,15 @@ export function FloatingNavbar() {
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
-    
+
     const router = useRouter();
     const pathname = usePathname();
-    
+
     // Get authentication state from context
     const { user, loading, logout, isAuthenticated } = useAuth();
-    
+
     // Skip authentication check on login and register pages
-    const isAuthPage = pathname === "/login" || pathname === "/register";
+    const isAuthPage = pathname === '/login' || pathname === '/register';
 
     // Handle scrolling effects
     useEffect(() => {
@@ -59,8 +59,8 @@ export function FloatingNavbar() {
             setLastScrollY(currentScrollY);
         };
 
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
     }, [lastScrollY, isMobileMenuOpen]);
 
     // Handle user logout
@@ -69,13 +69,13 @@ export function FloatingNavbar() {
             await logout();
             setUserMenuOpen(false);
         } catch (err) {
-            console.error("Logout error:", err);
+            console.error('Logout error:', err);
         }
     };
 
     // Toggle mobile menu
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-    
+
     // Toggle user profile menu
     const toggleUserMenu = () => setUserMenuOpen(!userMenuOpen);
 
@@ -85,13 +85,13 @@ export function FloatingNavbar() {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{
                     y: isVisible ? 0 : -100,
-                    opacity: isVisible ? 1 : 0
+                    opacity: isVisible ? 1 : 0,
                 }}
                 transition={{ duration: 0.3 }}
                 className={`
           w-full max-w-screen-lg rounded-full border border-[var(--color-border)] 
           backdrop-blur-md transition-all duration-300 
-          ${isScrolled ? "bg-background/80 shadow-lg" : "bg-background/50"}
+          ${isScrolled ? 'bg-background/80 shadow-lg' : 'bg-background/50'}
           flex items-center justify-between px-4 py-2 sm:px-6
         `}
             >
@@ -109,7 +109,7 @@ export function FloatingNavbar() {
                 {/* Desktop Navigation */}
                 <div className="hidden items-center gap-1 md:flex">
                     <NavItem href="/chat" icon={<RiMessage3Line className="h-5 w-5" />} label="Chat" />
-                    
+
                     {/* Authentication and User Menu */}
                     {loading ? (
                         <div className="h-10 w-10 rounded-full bg-[var(--color-secondary)] animate-pulse"></div>
@@ -129,7 +129,7 @@ export function FloatingNavbar() {
                                 </div>
                                 <span className="hidden font-medium sm:inline-block">{user?.first_name}</span>
                             </button>
-                            
+
                             {userMenuOpen && (
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
@@ -137,11 +137,13 @@ export function FloatingNavbar() {
                                     className="absolute right-0 mt-2 w-60 rounded-lg border border-[var(--color-border)] bg-background/95 p-3 shadow-lg backdrop-blur-md"
                                 >
                                     <div className="mb-3 border-b border-[var(--color-border)] pb-3">
-                                        <p className="font-medium">{user?.first_name} {user?.last_name}</p>
+                                        <p className="font-medium">
+                                            {user?.first_name} {user?.last_name}
+                                        </p>
                                         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <Link 
+                                        <Link
                                             href="/profile"
                                             onClick={() => setUserMenuOpen(false)}
                                             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-[var(--heart-blue-500)/10]"
@@ -160,19 +162,21 @@ export function FloatingNavbar() {
                                 </motion.div>
                             )}
                         </div>
-                    ) : !isAuthPage && (
-                        <>
-                            <Link href="/login" className="rounded-full overflow-hidden">
-                                <Button variant="outline" size="sm" className="rounded-full">
-                                    Log in
-                                </Button>
-                            </Link>
-                            <Link href="/register" className="rounded-full overflow-hidden">
-                                <Button variant="default" size="sm" className="rounded-full">
-                                    Register
-                                </Button>
-                            </Link>
-                        </>
+                    ) : (
+                        !isAuthPage && (
+                            <>
+                                <Link href="/login" className="rounded-full overflow-hidden">
+                                    <Button variant="outline" size="sm" className="rounded-full">
+                                        Log in
+                                    </Button>
+                                </Link>
+                                <Link href="/register" className="rounded-full overflow-hidden">
+                                    <Button variant="default" size="sm" className="rounded-full">
+                                        Register
+                                    </Button>
+                                </Link>
+                            </>
+                        )
                     )}
                     <ThemeToggle />
                 </div>
@@ -191,7 +195,7 @@ export function FloatingNavbar() {
                             </span>
                         </button>
                     )}
-                    
+
                     <ThemeToggle />
                     <button
                         onClick={toggleMobileMenu}
@@ -226,23 +230,37 @@ export function FloatingNavbar() {
                 >
                     <div className="flex flex-col space-y-3">
                         <MobileNavItem href="/chat" icon={<RiMessage3Line className="h-5 w-5" />} label="Chat" />
-                        
+
                         {/* Authentication links for mobile */}
                         {!loading && !isAuthenticated && !isAuthPage && (
                             <>
-                                <MobileNavItem href="/login" icon={<RiUser3Line className="h-5 w-5" />} label="Log in" />
-                                <MobileNavItem href="/register" icon={<RiUser3Line className="h-5 w-5" />} label="Register" />
+                                <MobileNavItem
+                                    href="/login"
+                                    icon={<RiUser3Line className="h-5 w-5" />}
+                                    label="Log in"
+                                />
+                                <MobileNavItem
+                                    href="/register"
+                                    icon={<RiUser3Line className="h-5 w-5" />}
+                                    label="Register"
+                                />
                             </>
                         )}
-                        
+
                         {!loading && isAuthenticated && (
                             <>
-                                <MobileNavItem href="/profile" icon={<RiUser3Line className="h-5 w-5" />} label="Profile" />
+                                <MobileNavItem
+                                    href="/profile"
+                                    icon={<RiUser3Line className="h-5 w-5" />}
+                                    label="Profile"
+                                />
                                 <button
                                     onClick={handleLogout}
                                     className="flex items-center gap-3 rounded-md px-3 py-2 text-[var(--color-foreground)] transition-colors hover:bg-[var(--heart-blue-500)/10] text-left w-full"
                                 >
-                                    <span className="text-[var(--heart-blue-500)]"><RiLogoutBoxRLine className="h-5 w-5" /></span>
+                                    <span className="text-[var(--heart-blue-500)]">
+                                        <RiLogoutBoxRLine className="h-5 w-5" />
+                                    </span>
                                     <span className="font-medium">Log out</span>
                                 </button>
                             </>
@@ -250,7 +268,7 @@ export function FloatingNavbar() {
                     </div>
                 </motion.div>
             )}
-            
+
             {/* Mobile User Menu Dropdown */}
             {userMenuOpen && !isMobileMenuOpen && (
                 <motion.div
@@ -260,7 +278,9 @@ export function FloatingNavbar() {
                     className="md:hidden absolute left-0 right-0 top-full mt-2 rounded-lg border border-[var(--color-border)] bg-background/95 p-4 backdrop-blur-md shadow-lg mx-4"
                 >
                     <div className="mb-3 border-b border-[var(--color-border)] pb-3">
-                        <p className="font-medium">{user?.first_name} {user?.last_name}</p>
+                        <p className="font-medium">
+                            {user?.first_name} {user?.last_name}
+                        </p>
                         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
                     <div className="flex flex-col space-y-3">
@@ -269,7 +289,9 @@ export function FloatingNavbar() {
                             onClick={handleLogout}
                             className="flex items-center gap-3 rounded-md px-3 py-2 text-[var(--color-foreground)] transition-colors hover:bg-[var(--heart-blue-500)/10] text-left w-full"
                         >
-                            <span className="text-[var(--heart-blue-500)]"><RiLogoutBoxRLine className="h-5 w-5" /></span>
+                            <span className="text-[var(--heart-blue-500)]">
+                                <RiLogoutBoxRLine className="h-5 w-5" />
+                            </span>
                             <span className="font-medium">Log out</span>
                         </button>
                     </div>
@@ -288,9 +310,7 @@ function NavItem({ href, icon, label }: { href: string; icon: React.ReactNode; l
             href={href}
             className="group flex items-center gap-2 rounded-full px-4 py-2 text-[var(--color-foreground)] transition-colors hover:bg-[var(--heart-blue-500)/10]"
         >
-            <span className="text-[var(--heart-blue-500)] group-hover:text-[var(--heart-blue-700)]">
-                {icon}
-            </span>
+            <span className="text-[var(--heart-blue-500)] group-hover:text-[var(--heart-blue-700)]">{icon}</span>
             <span className="font-medium">{label}</span>
         </Link>
     );
