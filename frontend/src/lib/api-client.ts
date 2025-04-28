@@ -1,5 +1,5 @@
 /**
- * API client for LLM (Language Learning Model) interactions
+ * API client for backend interactions
  * This file re-exports all the functionality from the modular structure
  */
 
@@ -12,6 +12,21 @@ export {
   deleteConversation,
   getAllConversations 
 } from './api/conversation';
+
+// Re-export user content API functions
+// export {
+//   getUserContentHistory,
+//   getUserContentForSession
+// } from './api/user-content';
+
+// Re-export authentication API functions
+export {
+  login,
+  register,
+  logout,
+  refreshToken,
+  getUserProfile
+} from './api/auth';
 
 // Re-export conversation storage types and functions
 export { 

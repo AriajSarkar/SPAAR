@@ -43,6 +43,7 @@ export async function generateLLMResponse(
         include_history: includeHistory
       }),
       cache: 'no-store',
+      credentials: 'include', // Add this to include cookies with the request
     });
 
     if (!response.ok) {

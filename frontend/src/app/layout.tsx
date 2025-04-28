@@ -4,6 +4,8 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { CursorProvider } from "@/components/ui/cursor/useCursorState";
 import { StatefulCursor } from "@/components/ui/cursor/StatefulCursor";
+import { FloatingNavbar } from "@/components/Navbar/FloatingNavbar";
+import { AuthProvider } from "@/lib/auth/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,8 +34,10 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <CursorProvider>
-            <StatefulCursor follow={true} color="var(--heart-blue-500)" />
-            {children}
+            <AuthProvider>
+              <StatefulCursor follow={true} color="var(--heart-blue-500)" />
+              {children}
+            </AuthProvider>
           </CursorProvider>
         </ThemeProvider>
       </body>

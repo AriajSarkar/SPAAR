@@ -605,21 +605,33 @@ export function initializeChatStore() {
   if (savedSessionId) {
     store._setSessionId(savedSessionId);
     
-    // Load conversation history for this session
-    store.refreshConversation().catch(() => {
-      // If loading fails, generate a new session ID
-      const newSessionId = generateSessionId();
-      store._setSessionId(newSessionId);
-      store._setError("Couldn't load conversation history. Starting a new chat.");
+    // Only load conversation history for existing sessions that were previously saved
+    // This prevents making API calls for freshly generated session IDs with no history
+    store.loadAllConversations().then(() => {
+      // Check if this session ID exists in the loaded conversations
+      const currentState = useChatStore.getState();
+      const sessionExists = currentState.conversations.some(
+        (conv: ConversationSummary) => conv.id === savedSessionId
+      );
+      
+      // Only load the conversation history if this session actually exists
+      if (sessionExists) {
+        store.refreshConversation().catch(() => {
+          // If loading fails, generate a new session ID
+          const newSessionId = generateSessionId();
+          store._setSessionId(newSessionId);
+          store._setError("Couldn't load conversation history. Starting a new chat.");
+        });
+      }
+    }).catch(err => {
+      console.error("Failed to check if conversation exists:", err);
     });
   } else {
     // Create a new session ID if none exists
     const newSessionId = generateSessionId();
     store._setSessionId(newSessionId);
+    // Don't load conversation history for a new session ID as it won't exist yet
   }
-  
-  // Load all conversations
-  store.loadAllConversations();
   
   // Mark as initialized
   store._setInitialized(true);

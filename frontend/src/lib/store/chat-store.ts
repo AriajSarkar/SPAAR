@@ -653,61 +653,67 @@ export function initializeChatStore(): () => void {
       // Get session ID - use safe storage utility with default value
       const savedSessionId = safeStorage.getItem<string | null>(STORAGE_KEYS.SESSION_ID, null);
       
-      if (savedSessionId) {
-        store._setSessionId(savedSessionId);
-        
-        // Create optimistic entry for current session immediately
-        store._addOrUpdateConversation(savedSessionId);
-        
-        // Load conversation history without blocking
-        enqueueTask(
-          'init-refresh-conversation',
-          async () => {
-            try {
-              // Only try to load history if we have a session ID
-              if (savedSessionId) {
+      // First load all conversations to check if the saved session ID exists
+      store.loadAllConversations().then(() => {
+        if (savedSessionId) {
+          store._setSessionId(savedSessionId);
+          
+          // Check if this saved session actually exists in the loaded conversations
+          const currentState = useChatStore.getState();
+          const sessionExists = currentState.conversations.some(
+            (conv: ConversationSummary) => conv.id === savedSessionId
+          );
+          
+          if (sessionExists) {
+            // Only create optimistic entry and load history if session exists
+            store._addOrUpdateConversation(savedSessionId);
+            
+            // Load conversation history in the background without blocking UI
+            enqueueTask(
+              'init-refresh-conversation',
+              async () => {
                 await store.refreshConversation();
+              },
+              {
+                onError: () => {
+                  // If loading fails, create a new session
+                  const newSessionId = generateSessionId();
+                  store._setSessionId(newSessionId);
+                  // Add optimistic entry
+                  store._addOrUpdateConversation(newSessionId);
+                }
               }
-            } catch (error) {
-              console.error('Error initializing conversation:', error);
-              // If loading fails, create a new session
-              const newSessionId = generateSessionId();
-              store._setSessionId(newSessionId);
-              // Add optimistic entry
-              store._addOrUpdateConversation(newSessionId);
-            }
-          },
-          {
-            onSuccess: () => {
-              // Mark as initialized when complete
-              store._setInitialized(true);
-              isInitialized = true;
-              isInitializing = false;
-            },
-            onError: () => {
-              // Create a new session on error
-              const newSessionId = generateSessionId();
-              store._setSessionId(newSessionId);
-              store._addOrUpdateConversation(newSessionId);
-              store._setInitialized(true);
-              isInitialized = true;
-              isInitializing = false;
-            }
+            );
+          } else {
+            // Session ID not found in conversations - create a new one
+            const newSessionId = generateSessionId();
+            store._setSessionId(newSessionId);
+            store._addOrUpdateConversation(newSessionId);
           }
-        );
-      } else {
-        // If no session ID exists, create a new one
+        } else {
+          // If no session ID exists, create a new one
+          const newSessionId = generateSessionId();
+          store._setSessionId(newSessionId);
+          // Add optimistic entry
+          store._addOrUpdateConversation(newSessionId);
+        }
+        
+        // Mark as initialized
+        store._setInitialized(true);
+        isInitialized = true;
+        isInitializing = false;
+      }).catch(() => {
+        // If conversation loading fails, still create a session
         const newSessionId = generateSessionId();
         store._setSessionId(newSessionId);
         // Add optimistic entry
         store._addOrUpdateConversation(newSessionId);
+        
+        // Mark as initialized even on error
         store._setInitialized(true);
         isInitialized = true;
         isInitializing = false;
-      }
-      
-      // Load all conversations in the background
-      store.loadAllConversations();
+      });
       
     } catch (error) {
       // Reset initialization flags on error

@@ -21,7 +21,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
  */
 export async function getConversationHistory(sessionId: string): Promise<any> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/llm/conversation/${sessionId}/`);
+    const response = await fetch(`${API_BASE_URL}/api/v1/llm/conversation/${sessionId}/`, {
+      credentials: 'include', // Add this to include cookies with the request
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -50,6 +52,7 @@ export async function deleteConversation(sessionId: string): Promise<any> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/llm/conversation/${sessionId}/delete/`, {
       method: 'DELETE',
+      credentials: 'include', // Add this to include cookies with the request
     });
 
     if (!response.ok) {
@@ -68,68 +71,73 @@ export async function deleteConversation(sessionId: string): Promise<any> {
 }
 
 /**
- * Get all user conversations using local storage tracking
- * Since the /conversations/ endpoint doesn't exist, we'll use local storage and fetch individual histories
+ * Get all user conversations from the API
  * 
  * @returns Promise with the list of conversation summaries
  */
 export async function getAllConversations(): Promise<ConversationSummary[]> {
   try {
-    if (typeof localStorage === 'undefined') {
-      return [];
+    // Use the proper API endpoint 
+    const response = await fetch(`${API_BASE_URL}/api/user-content/`, {
+      credentials: 'include', // Include cookies for authentication
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
     }
+
+    const conversations = await response.json();
     
-    // Get list of conversation IDs from local storage
-    const conversationIds = getConversationIdsFromLocalStorage();
-    
-    if (!conversationIds.length) {
-      return [];
-    }
-    
-    // Create summaries for each conversation we know about
-    const conversationSummaries: ConversationSummary[] = [];
-    
-    for (const id of conversationIds) {
-      try {
-        // Try to load cached conversation info first
-        const cachedInfo = getConversationFromLocalStorage(id);
-        
-        if (cachedInfo) {
-          conversationSummaries.push(cachedInfo);
-        } else {
-          // Fetch from API if not cached
-          const history = await getConversationHistory(id);
-          
-          if (history && history.history && history.history.length) {
-            // Find the first user message for title and last message for preview
-            const firstUserMsg = history.history.find((msg: any) => msg.role === 'user');
-            const lastMsg = history.history[history.history.length - 1];
-            
-            const summary: ConversationSummary = {
-              id,
-              title: firstUserMsg?.content?.substring(0, 30) || 'New Conversation',
-              preview: lastMsg?.content?.substring(0, 50) || 'No messages',
-              lastMessageDate: lastMsg?.created_at || new Date().toISOString(),
-              messageCount: history.history.length
-            };
-            
-            conversationSummaries.push(summary);
-            
-            // Cache this conversation summary
-            saveConversationToLocalStorage(id, summary);
-          }
-        }
-      } catch (error) {
-        console.error(`Error getting history for conversation ${id}:`, error);
-      }
-    }
+    // Convert API response to ConversationSummary format
+    const conversationSummaries: ConversationSummary[] = conversations.map((conv: any) => {
+      const firstUserMsg = conv.history.find((msg: any) => msg.role === 'user');
+      const lastMsg = conv.history.length > 0 ? conv.history[conv.history.length - 1] : null;
+      
+      const summary: ConversationSummary = {
+        id: conv.session_id,
+        title: firstUserMsg?.content?.substring(0, 30) || 'New Conversation',
+        preview: lastMsg?.content?.substring(0, 50) || 'No messages',
+        lastMessageDate: lastMsg?.created_at || new Date().toISOString(),
+        messageCount: conv.history.length
+      };
+      
+      // Update local storage
+      saveConversationToLocalStorage(conv.session_id, summary);
+      
+      return summary;
+    });
     
     // Sort by most recent
     return conversationSummaries.sort((a, b) => 
       new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime()
     );
   } catch (error) {
-    console.error('Error building conversation list:', error);
+    console.error('Error fetching conversations:', error);
+    return fallbackToLocalStorage();
+  }
+}
+
+/**
+ * Fallback to local storage when API fails
+ * 
+ * @returns Conversation summaries from local storage
+ */
+function fallbackToLocalStorage(): ConversationSummary[] {
+  if (typeof localStorage === 'undefined') {
+    return [];
+  }
+  
+  try {
+    const conversationIds = getConversationIdsFromLocalStorage();
+    const summaries = conversationIds
+      .map(id => getConversationFromLocalStorage(id))
+      .filter(Boolean) as ConversationSummary[];
+      
+    return summaries.sort((a, b) => 
+      new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime()
+    );
+  } catch (error) {
+    console.error('Error using local storage fallback:', error);
     return [];
   }
 }
