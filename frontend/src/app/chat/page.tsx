@@ -5,7 +5,6 @@ import { ChatInput } from '@/components/Chat/features/ChatInput';
 import { MessagesContainer } from '@/components/Chat/features/MessagesContainer';
 import { ChatSidebar } from '@/components/Chat/ChatSidebar';
 import { useChat } from '@/components/Chat/useChat';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { RiMenuLine } from '@remixicon/react';
 
@@ -41,7 +40,7 @@ export default function ChatPage() {
   }, [isMobile]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#1a1a1a] dark:bg-[#1a1a1a]">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Chat history sidebar (outside the main flex container) */}
       <ChatSidebar
         conversations={conversations}
@@ -64,31 +63,26 @@ export default function ChatPage() {
         {!isSidebarOpen && (
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="fixed top-4 left-4 z-40 p-2 rounded-md bg-[#111111] border border-gray-700 shadow-sm hover:bg-[#1e1e1e] transition-colors"
+            className="fixed top-4 left-4 z-40 p-2 rounded-md bg-card border border-[var(--border)] shadow-sm hover:bg-muted transition-colors"
             aria-label="Open sidebar"
           >
-            <RiMenuLine className="h-5 w-5 text-gray-300" />
+            <RiMenuLine className="h-5 w-5 text-muted-foreground" />
           </button>
         )}
-
-        {/* Theme toggle in top-right corner */}
-        <div className="absolute top-3 right-3 z-10">
-          <ThemeToggle />
-        </div>
 
         {/* Empty state or messages area */}
         <div className={`flex-1 overflow-hidden flex flex-col ${messages.length === 0 ? 'items-center justify-center' : ''}`}>
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center px-4 max-w-xl">
-              <div className="mb-6 w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
+              <div className="mb-6 w-16 h-16 rounded-full bg-[var(--heart-blue-500)] flex items-center justify-center">
                 <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
                 </svg>
               </div>
-              <h1 className="text-2xl font-medium text-white mb-2">
+              <h1 className="text-2xl font-medium text-foreground mb-2">
                 Hi, I'm your AI Assistant.
               </h1>
-              <p className="text-gray-400">
+              <p className="text-muted-foreground">
                 How can I help you today?
               </p>
             </div>
@@ -109,20 +103,17 @@ export default function ChatPage() {
           className={`w-full transition-all duration-500 ease-in-out ${
             messages.length === 0 
               ? 'absolute left-0 right-0 bottom-1/3 transform-gpu' 
-              : 'sticky bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-gray-800'
+              : 'sticky bottom-0 left-0 right-0 bg-background border-t border-[var(--border)]'
           }`}
         >
           <div className="max-w-3xl mx-auto px-4 pb-6 relative">
+
+            
             <ChatInput
               onSendMessage={sendMessage}
               isLoading={isLoading}
               onCancel={cancelResponse}
             />
-            
-            {/* Footer notice */}
-            <div className="text-center mt-2">
-              <span className="text-xs text-gray-500">AI-generated content</span>
-            </div>
           </div>
         </div>
       </div>

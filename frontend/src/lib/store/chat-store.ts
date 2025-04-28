@@ -158,20 +158,21 @@ export const useChatStore = create<FullChatStore>()(
       });
     }),
     
-    // Load all conversations
+    // Load all conversations with optimized background loading
+    // No UI indicators will be shown for this operation
     loadAllConversations: async () => {
       const taskId = 'load-all-conversations';
       const state = get();
       
-      // Don't start another load if one is already in progress
-      if (state.loadingConversations || state.pendingTasks[taskId]) {
+      // Skip if another load is already in progress to prevent duplicate requests
+      if (state.pendingTasks[taskId]) {
         return;
       }
       
+      // Track the task but don't update visible loading state
       set(state => {
-        state.loadingConversations = true;
         state.pendingTasks[taskId] = true;
-        state.error = null;
+        // Don't set loadingConversations to true to avoid UI indicators
       });
       
       try {
@@ -194,7 +195,6 @@ export const useChatStore = create<FullChatStore>()(
                 
                 set(state => {
                   state.conversations = formattedConversations;
-                  state.loadingConversations = false;
                   delete state.pendingTasks[taskId];
                 });
                 resolve();
@@ -207,9 +207,9 @@ export const useChatStore = create<FullChatStore>()(
               priority: 2,
               onError: (error) => {
                 set(state => {
-                  state.loadingConversations = false;
                   delete state.pendingTasks[taskId];
-                  state.error = error.message;
+                  // Don't set error in UI since loading happens silently
+                  console.error('Failed to load conversations:', error);
                 });
               }
             }

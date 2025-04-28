@@ -3,12 +3,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChatInputProps } from './types';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { LoginRequired } from '@/components/Auth/LoginRequired';
+import { cn } from '@/lib/utils';
 // Import Remix Icons
 import { RiSendPlaneFill, RiCloseLine, RiAttachmentLine } from '@remixicon/react';
 
 /**
  * ChatInput component provides a textarea for user message input
  * Designed to appear in center when no messages, and animate to bottom with messages
+ * Now checks for authenticated state before allowing input
  */
 export const ChatInput = ({
     onSendMessage,
@@ -17,6 +21,12 @@ export const ChatInput = ({
 }: ChatInputProps) => {
     // Input state
     const [input, setInput] = useState('');
+    
+    // Get authentication state
+    const { isAuthenticated } = useAuth();
+    
+    // Show login prompt state - becomes true only when user tries to input
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     
     // Ref for textarea element
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -44,13 +54,35 @@ export const ChatInput = ({
     // Handle form submission
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Check if user is authenticated before submitting
+        if (!isAuthenticated) {
+            setShowLoginPrompt(true);
+            return;
+        }
+        
         if (!input.trim() || isLoading) return;
         onSendMessage(input);
         setInput('');
     };
 
+    // Handle textarea focus - check authentication
+    const handleTextareaFocus = () => {
+        if (!isAuthenticated) {
+            setShowLoginPrompt(true);
+            // Blur the textarea to stop focus
+            textareaRef.current?.blur();
+        }
+    };
+
     // Handle input change
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        // If not authenticated, show login prompt
+        if (!isAuthenticated) {
+            setShowLoginPrompt(true);
+            return;
+        }
+        
         setInput(e.target.value);
     };
 
@@ -62,29 +94,39 @@ export const ChatInput = ({
         }
     };
 
+    // If showing login prompt, render the login required component
+    if (showLoginPrompt) {
+        return (
+            <div className="flex justify-center py-4">
+                <LoginRequired message="You need to log in to chat with the AI assistant." />
+            </div>
+        );
+    }
+
     return (
         <div className="relative w-full">
             <form onSubmit={handleSubmit} className="relative">
                 {/* Model selector and options buttons */}
                 <div className="mb-2 flex justify-between">
-                    <div className="flex items-center text-gray-400 text-sm gap-1">
-                        <button className="px-3 py-1 rounded-md bg-[#2c2c2c] text-gray-300 flex items-center gap-1 hover:bg-[#343434]">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    <div className="flex items-center text-muted-foreground text-sm gap-1">
+                        <button className="px-3 py-1 rounded-md bg-muted text-foreground flex items-center gap-1 hover:bg-muted/80 transition-colors">
+                            <span className="w-2 h-2 bg-[var(--heart-blue-500)] rounded-full"></span>
                             AI Assistant
                         </button>
                     </div>
                 </div>
 
-                <div className="relative flex items-center bg-[#202123] rounded-xl border border-gray-700 overflow-hidden">
+                <div className="relative flex items-center bg-card rounded-xl border border-[var(--border)] overflow-hidden">
                     <textarea
                         ref={textareaRef}
                         value={input}
                         onChange={handleInputChange}
+                        onFocus={handleTextareaFocus}
                         onKeyDown={handleKeyDown}
                         placeholder="Message your assistant..."
                         disabled={isLoading}
                         rows={1}
-                        className="w-full py-3 px-4 pr-12 resize-none outline-none bg-transparent text-gray-200 placeholder-gray-500 text-sm"
+                        className="w-full py-3 px-4 pr-12 resize-none outline-none bg-transparent text-foreground placeholder:text-muted-foreground text-sm"
                         style={{ minHeight: '44px', maxHeight: '160px' }}
                     />
 
@@ -92,8 +134,11 @@ export const ChatInput = ({
                         {/* Attachment button */}
                         <Button
                             type="button"
-                            className="p-1.5 rounded-md text-gray-500 hover:text-gray-400 bg-transparent hover:bg-[#2c2c2c]"
+                            variant="ghost"
+                            size="icon"
+                            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                             aria-label="Attachments"
+                            onClick={() => !isAuthenticated && setShowLoginPrompt(true)}
                         >
                             <RiAttachmentLine size={20} className="rotate-45" />
                         </Button>
@@ -101,8 +146,10 @@ export const ChatInput = ({
                         {isLoading ? (
                             <Button
                                 type="button"
+                                variant="ghost"
+                                size="icon"
                                 onClick={onCancel}
-                                className="p-1.5 rounded-md text-gray-500 hover:text-gray-400 bg-transparent hover:bg-[#2c2c2c]"
+                                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground"
                                 aria-label="Cancel"
                             >
                                 <RiCloseLine size={20} />
@@ -110,12 +157,15 @@ export const ChatInput = ({
                         ) : (
                             <Button
                                 type="submit"
+                                variant="ghost"
+                                size="icon"
                                 disabled={!input.trim()}
-                                className={`p-1.5 rounded-md bg-transparent ${
-                                    input.trim()
-                                        ? 'text-gray-300 hover:bg-[#2c2c2c] cursor-pointer'
-                                        : 'text-gray-600 cursor-default'
-                                }`}
+                                className={cn(
+                                  "p-1.5 rounded-md",
+                                  input.trim()
+                                    ? "text-foreground hover:bg-muted cursor-pointer"
+                                    : "text-muted-foreground/50 cursor-default"
+                                )}
                                 aria-label="Send message"
                             >
                                 <RiSendPlaneFill size={20} />

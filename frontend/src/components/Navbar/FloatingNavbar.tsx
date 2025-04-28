@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { ThemeToggle } from "../theme/ThemeToggle";
 import Link from "next/link";
-import { RiRobot2Line, RiMessage3Line, RiSettings3Line, RiUser3Line, RiLogoutBoxRLine } from "@remixicon/react";
+import { RiRobot2Line, RiMessage3Line, RiUser3Line, RiLogoutBoxRLine } from "@remixicon/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -174,8 +174,6 @@ export function FloatingNavbar() {
                             </Link>
                         </>
                     )}
-                    
-                    <NavItem href="/settings" icon={<RiSettings3Line className="h-5 w-5" />} label="Settings" />
                     <ThemeToggle />
                 </div>
 
@@ -249,8 +247,6 @@ export function FloatingNavbar() {
                                 </button>
                             </>
                         )}
-                        
-                        <MobileNavItem href="/settings" icon={<RiSettings3Line className="h-5 w-5" />} label="Settings" />
                     </div>
                 </motion.div>
             )}

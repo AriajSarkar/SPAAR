@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { login as loginApi, logout as logoutApi, getUserProfile, AuthResponse } from "../api/auth";
+import { logout as logoutApi, getUserProfile } from "../api/auth";
 import { UserProfile } from "../api/auth";
 
 interface AuthContextType {
@@ -62,11 +62,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(response.user);
         } else {
           setUser(null);
-          
-          // If not on auth page and not authenticated, redirect to login
-          if (!isAuthPage) {
-            router.push("/login");
-          }
         }
       } catch (err) {
         console.error("Error checking authentication:", err);
@@ -78,7 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     checkAuth();
-  }, [isAuthPage, pathname, router]);
+  }, [isAuthPage, pathname]);
 
   // Save authentication data - no localStorage, cookies are handled by the browser
   const handleLogin = (tokens: { access: string; refresh: string }, userData: UserProfile) => {

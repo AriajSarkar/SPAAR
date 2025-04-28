@@ -3,43 +3,12 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "motion/react";
 import { cn } from "@/lib/utils";
-
-/**
- * Props for FloatingTooltip component
- */
-export interface FloatingTooltipProps {
-    /** Content to display in the tooltip */
-    content: React.ReactNode;
-    /** Position of tooltip relative to target element */
-    position?: "top" | "right" | "bottom" | "left" | "top-right" | "top-left";
-    /** Children to wrap with tooltip functionality */
-    children: React.ReactNode;
-    /** Optional CSS class name */
-    className?: string;
-    /** Whether to show an arrow pointing to the target */
-    showArrow?: boolean;
-    /** Delay before showing tooltip in ms (default: 100) */
-    delayShow?: number;
-    /** Delay before hiding tooltip in ms (default: 100) */
-    delayHide?: number;
-    /** Custom offset from target element in pixels */
-    offset?: number;
-    /** Background color override */
-    backgroundColor?: string;
-    /** Text color override */
-    textColor?: string;
-    /** Border color override */
-    borderColor?: string;
-    /** Enable tooltip cursor-like behavior */
-    cursorMode?: boolean;
-    /** Animation style for the tooltip cursor */
-    cursorAnimation?: "spring" | "smooth" | "delayed" | "elastic";
-}
+import { FloatingTooltipProps } from "../types";
+import { getAnimationVariants, springConfigs, getArrowStyles, calculateTooltipPosition } from "../utils";
 
 /**
  * FloatingTooltip component for displaying tooltips on hover
  * Can behave like a floating cursor with smooth animations
- * Features heart-themed styling and multiple animation options
  */
 export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
     content,
@@ -71,17 +40,9 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
     const mouseX = useMotionValue<number>(0);
     const mouseY = useMotionValue<number>(0);
 
-    // Configure spring behavior based on animation style
-    const springConfig = {
-        spring: { damping: 25, stiffness: 300 },
-        smooth: { damping: 50, stiffness: 100 },
-        delayed: { damping: 30, stiffness: 200 },
-        elastic: { damping: 10, stiffness: 400 }
-    };
-
     // Apply spring physics for smooth movement
-    const springX = useSpring(mouseX, springConfig[cursorAnimation]);
-    const springY = useSpring(mouseY, springConfig[cursorAnimation]);
+    const springX = useSpring(mouseX, springConfigs[cursorAnimation]);
+    const springY = useSpring(mouseY, springConfigs[cursorAnimation]);
 
     // Transform the tooltip position with offset from cursor
     const tooltipX = useTransform(springX, x => x + (cursorMode ? 20 : 0));
@@ -99,33 +60,7 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
             setOriginCoords({ x: originX, y: originY });
 
             // Set initial coords based on element position and desired tooltip position
-            let x = originX;
-            let y = originY;
-
-            // Approximate position based on specified position
-            switch (position) {
-                case "top":
-                    y = rect.top - offset;
-                    break;
-                case "top-right":
-                    x = rect.right;
-                    y = rect.top - offset;
-                    break;
-                case "top-left":
-                    x = rect.left;
-                    y = rect.top - offset;
-                    break;
-                case "right":
-                    x = rect.right + offset;
-                    break;
-                case "bottom":
-                    y = rect.bottom + offset;
-                    break;
-                case "left":
-                    x = rect.left - offset;
-                    break;
-            }
-
+            const { x, y } = calculateInitialPosition(rect, position, offset);
             setCoords({ x, y });
 
             if (cursorMode) {
@@ -135,6 +70,44 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
             }
         }
     }, [cursorMode, mouseX, mouseY, offset, position, initialPosition]);
+
+    // Calculate initial position based on element and position
+    const calculateInitialPosition = (
+        rect: DOMRect,
+        position: string,
+        offset: number
+    ) => {
+        const originX = rect.left + rect.width / 2;
+        const originY = rect.top + rect.height / 2;
+        let x = originX;
+        let y = originY;
+
+        // Approximate position based on specified position
+        switch (position) {
+            case "top":
+                y = rect.top - offset;
+                break;
+            case "top-right":
+                x = rect.right;
+                y = rect.top - offset;
+                break;
+            case "top-left":
+                x = rect.left;
+                y = rect.top - offset;
+                break;
+            case "right":
+                x = rect.right + offset;
+                break;
+            case "bottom":
+                y = rect.bottom + offset;
+                break;
+            case "left":
+                x = rect.left - offset;
+                break;
+        }
+
+        return { x, y };
+    };
 
     // Handle mouse movement for cursor-like behavior
     useEffect(() => {
@@ -162,55 +135,23 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
         const tooltipRect = tooltipRef.current.getBoundingClientRect();
 
         // Store origin coordinates (center of the trigger element)
-        // This will be used as the starting point for the tooltip animation
         const originX = triggerRect.left + triggerRect.width / 2;
         const originY = triggerRect.top + triggerRect.height / 2;
         setOriginCoords({ x: originX, y: originY });
 
-        let x = 0;
-        let y = 0;
-
-        // Calculate final tooltip position based on desired position
-        switch (position) {
-            case "top":
-                x = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
-                y = triggerRect.top - tooltipRect.height - offset;
-                break;
-            case "top-right":
-                x = triggerRect.right - tooltipRect.width;
-                y = triggerRect.top - tooltipRect.height - offset;
-                break;
-            case "top-left":
-                x = triggerRect.left;
-                y = triggerRect.top - tooltipRect.height - offset;
-                break;
-            case "right":
-                x = triggerRect.right + offset;
-                y = triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
-                break;
-            case "bottom":
-                x = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
-                y = triggerRect.bottom + offset;
-                break;
-            case "left":
-                x = triggerRect.left - tooltipRect.width - offset;
-                y = triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
-                break;
-            default:
-                x = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
-                y = triggerRect.top - tooltipRect.height - offset;
-        }
-
-        // Keep tooltip within viewport
-        x = Math.max(10, Math.min(x, window.innerWidth - tooltipRect.width - 10));
-        y = Math.max(10, Math.min(y, window.innerHeight - tooltipRect.height - 10));
+        // Calculate tooltip position
+        const { x, y } = calculateTooltipPosition(
+            triggerRect,
+            tooltipRect,
+            position,
+            offset
+        );
 
         setCoords({ x, y });
         setIsPositioned(true);
 
         if (cursorMode) {
             // In cursor mode, initialize from the trigger element
-            // Start from the trigger element center, then animate to cursor position
             springX.set(originX);
             springY.set(originY);
 
@@ -255,7 +196,6 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
             setIsVisible(true);
 
             // Update position to set correct coordinates
-            // Delay by one frame to ensure the tooltip is rendered
             requestAnimationFrame(() => {
                 updatePosition();
             });
@@ -327,86 +267,6 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
         };
     }, []);
 
-    // Get animation variants based on position and origin
-    const getAnimationVariants = () => {
-        // Always animate from origin coordinates (the trigger element)
-        return {
-            hidden: {
-                opacity: 0,
-                scale: 0.8,
-                x: cursorMode ? undefined : (originCoords.x - coords.x),
-                y: cursorMode ? undefined : (originCoords.y - coords.y)
-            },
-            visible: {
-                opacity: 1,
-                scale: 1,
-                x: 0,
-                y: 0,
-                transition: {
-                    type: "spring",
-                    damping: 20,
-                    stiffness: 300,
-                }
-            },
-            exit: {
-                opacity: 0,
-                scale: 0.8,
-                x: cursorMode ? undefined : (originCoords.x - coords.x) / 2,
-                y: cursorMode ? undefined : (originCoords.y - coords.y) / 2,
-                transition: {
-                    duration: 0.15,
-                }
-            }
-        };
-    };
-
-    // Get arrow styles based on position
-    const getArrowStyles = () => {
-        const arrowSize = 6;
-        const styles = {
-            position: "absolute" as const,
-            width: 0,
-            height: 0,
-            borderLeft: `${arrowSize}px solid transparent`,
-            borderRight: `${arrowSize}px solid transparent`,
-            borderTop: `${arrowSize}px solid ${borderColor || backgroundColor || "var(--background)"}`,
-            borderBottom: 0,
-            filter: "drop-shadow(0 -1px 0px var(--color-border))",
-        };
-
-        if (position.includes("top")) {
-            return {
-                ...styles,
-                bottom: -arrowSize,
-                left: "50%",
-                transform: "translateX(-50%)",
-            };
-        } else if (position === "bottom") {
-            return {
-                ...styles,
-                top: -arrowSize,
-                left: "50%",
-                transform: "translateX(-50%) rotate(180deg)",
-            };
-        } else if (position === "left") {
-            return {
-                ...styles,
-                right: -arrowSize,
-                top: "50%",
-                transform: "translateY(-50%) rotate(90deg)",
-            };
-        } else if (position === "right") {
-            return {
-                ...styles,
-                left: -arrowSize,
-                top: "50%",
-                transform: "translateY(-50%) rotate(-90deg)",
-            };
-        }
-
-        return styles;
-    };
-
     // Get tooltip style based on mode (cursor or fixed position)
     const getTooltipStyle = () => {
         if (cursorMode) {
@@ -462,7 +322,7 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        variants={getAnimationVariants()}
+                        variants={getAnimationVariants(cursorMode, originCoords, coords)}
                         style={getTooltipStyle()}
                         onAnimationComplete={() => {
                             if (!isPositioned) {
@@ -471,12 +331,12 @@ export const FloatingTooltip: React.FC<FloatingTooltipProps> = ({
                         }}
                     >
                         {content}
-                        {showArrow && !cursorMode && <div style={getArrowStyles()} />}
+                        {showArrow && !cursorMode && (
+                            <div style={getArrowStyles(position, 6, borderColor, backgroundColor)} />
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
         </>
     );
 };
-
-export default FloatingTooltip;

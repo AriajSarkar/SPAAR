@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { FloatingNavbar } from "@/components/Navbar/FloatingNavbar";
+import { div } from "motion/react-client";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,6 +58,10 @@ export default function ProfilePage() {
   };
 
   return (
+    <div>
+    <div className="fixed top-0 left-0 w-full z-50">
+      <FloatingNavbar />
+    </div>
     <div className="min-h-screen bg-background p-4 pt-24">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
@@ -175,6 +181,7 @@ export default function ProfilePage() {
           </Card>
         )}
       </div>
+    </div>
     </div>
   );
 }

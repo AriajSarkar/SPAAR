@@ -1,21 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { FloatingTooltipProps } from "./FloatingTooltip";
-
-/**
- * Props for the useFloatingTooltip hook
- */
-export interface UseFloatingTooltipProps extends Omit<FloatingTooltipProps, 'children' | 'content'> {
-    /** Content to display in the tooltip (optional) */
-    content?: React.ReactNode;
-    /** Whether to integrate with custom cursor component */
-    integrateCursor?: boolean;
-    /** Whether the tooltip should behave like a cursor */
-    cursorMode?: boolean;
-    /** Animation style for the tooltip cursor */
-    cursorAnimation?: "spring" | "smooth" | "delayed" | "elastic";
-}
+import { UseFloatingTooltipProps } from "../types";
 
 /**
  * Hook to handle floating tooltip functionality
