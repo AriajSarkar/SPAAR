@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const { user, loading, logout, error: authError, refreshUserProfile } = useAuth();
   const [localLoading, setLocalLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [hasRefreshed, setHasRefreshed] = useState(false);
   
   // Check authentication status on mount
   useEffect(() => {
@@ -20,9 +21,25 @@ export default function ProfilePage() {
       return;
     }
     
-    // Refresh user profile data to ensure it's up-to-date
-    refreshUserProfile();
-  }, [loading, user, router, refreshUserProfile]);
+    // Only refresh user profile once when the component mounts and user exists
+    if (user && !hasRefreshed && !loading) {
+      refreshUserProfile();
+      setHasRefreshed(true);
+    }
+  }, [loading, user, router, hasRefreshed]);
+
+  // Handle manual refresh with proper error handling
+  const handleManualRefresh = useCallback(async () => {
+    setLocalLoading(true);
+    try {
+      await refreshUserProfile();
+    } catch (err) {
+      setLocalError("Failed to refresh profile. Please try again.");
+      console.error("Profile refresh error:", err);
+    } finally {
+      setLocalLoading(false);
+    }
+  }, [refreshUserProfile]);
 
   // Handle logout
   const handleLogout = async () => {
@@ -80,7 +97,7 @@ export default function ProfilePage() {
 
         <h1 className="text-2xl font-bold mb-6">Your Profile</h1>
 
-        {loading ? (
+        {loading || localLoading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin h-8 w-8 border-t-2 border-l-2 border-[color:var(--heart-blue-500)] rounded-full"></div>
           </div>
@@ -150,7 +167,8 @@ export default function ProfilePage() {
             <Button 
               variant="default" 
               size="sm"
-              onClick={refreshUserProfile}
+              onClick={handleManualRefresh}
+              disabled={localLoading}
             >
               Try Again
             </Button>
