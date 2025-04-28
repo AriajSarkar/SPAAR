@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class LlmConversation(models.Model):
@@ -6,6 +7,13 @@ class LlmConversation(models.Model):
     session_id = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="conversations",
+        null=True,  # Allow null for backward compatibility
+        blank=True
+    )
     
     def __str__(self):
         return f"Conversation {self.session_id}"
