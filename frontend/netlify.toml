@@ -1,5 +1,61 @@
+[build]
+command = "pnpm run build"
+publish = ".next"
+
+  [build.cache]
+  paths = [
+    ".next/cache",
+    "node_modules/.cache",
+    "node_modules/.pnpm-store"
+  ]
+
+  [build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_ENABLE_STANDALONE = "true"
+
 [[plugins]]
 package = "@netlify/plugin-nextjs"
 
-[build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
+[[headers]]
+for = "/_next/static/*"
+
+  [headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+from = "/_next/image"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200
+
+  [redirects.query]
+  url = ":url"
+  w = ":width"
+  q = ":quality"
+
+[[redirects]]
+from = "/_ipx/*"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200
+
+  [redirects.query]
+  url = ":url"
+  w = ":width"
+  q = ":quality"
+
+[context]
+
+  [context.production]
+
+    [[context.production.headers]]
+    for = "/_next/static/*"
+
+      [context.production.headers.values]
+      Cache-Control = "public, max-age=31536000, immutable"
+
+  [context.main]
+
+    [[context.main.headers]]
+    for = "/_next/static/*"
+
+      [context.main.headers.values]
+      Cache-Control = "public, max-age=31536000, immutable"
