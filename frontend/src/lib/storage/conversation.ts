@@ -31,13 +31,13 @@ export function getConversationIdsFromLocalStorage(): string[] {
 /**
  * Add a conversation ID to local storage tracking
  */
-export function addConversationToLocalStorage(sessionId: string, data: any): void {
+export function addConversationToLocalStorage(sessionId: string, data: Record<string, unknown>): void {
     if (typeof localStorage === 'undefined') {
         return;
     }
 
     // Get existing IDs
-    let conversationIds = getConversationIdsFromLocalStorage();
+    const conversationIds = getConversationIdsFromLocalStorage();
 
     // Add if not already in the list
     if (!conversationIds.includes(sessionId)) {
@@ -46,15 +46,16 @@ export function addConversationToLocalStorage(sessionId: string, data: any): voi
     }
 
     // Also create a summary if we have message data
-    if (data && data.history && data.history.length) {
-        const firstUserMsg = data.history.find((msg: any) => msg.role === 'user');
+    if (data && Array.isArray(data.history) && data.history.length) {
+        const firstUserMsg = data.history.find((msg: Record<string, unknown>) => msg.role === 'user');
         const lastMsg = data.history[data.history.length - 1];
 
         const summary: ConversationSummary = {
             id: sessionId,
-            title: firstUserMsg?.content?.substring(0, 30) || 'New Conversation',
-            preview: lastMsg?.content?.substring(0, 50) || 'No messages',
-            lastMessageDate: lastMsg?.created_at || new Date().toISOString(),
+            title:
+                typeof firstUserMsg?.content === 'string' ? firstUserMsg.content.substring(0, 30) : 'New Conversation',
+            preview: typeof lastMsg?.content === 'string' ? lastMsg.content.substring(0, 50) : 'No messages',
+            lastMessageDate: typeof lastMsg?.created_at === 'string' ? lastMsg.created_at : new Date().toISOString(),
             messageCount: data.history.length,
         };
 

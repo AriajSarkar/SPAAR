@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useChatStore, initializeChatStore } from '@/lib/store/chat-store';
+import { useChatStore, initializeChatStore } from '@/lib/store/chatStore';
 import { ChatMessage, MessageSender } from '@/lib/store/chat-types';
 
 export type { ChatMessage, MessageSender };

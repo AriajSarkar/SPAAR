@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useChatStore, initializeChatStore, ChatMessage, MessageSender } from '@/lib/store/chatStore';
 
 // Re-export types from store
@@ -40,18 +40,21 @@ export function useChat() {
         return cleanup;
     }, []);
 
-    // Set up automatic conversation refresh
-    useEffect(() => {
-        // Set up an interval to refresh the conversation list
-        // This ensures the sidebar stays updated without requiring manual refresh
-        const intervalId = setInterval(() => {
-            if (!isLoading && !isStreaming) {
-                loadAllConversations();
-            }
-        }, 30000); // Every 30 seconds
-
-        return () => clearInterval(intervalId);
-    }, [isLoading, isStreaming, loadAllConversations]);
+    // Create a memoized wrapper for sendMessage that also refreshes conversations
+    const enhancedSendMessage = useCallback(
+        (content: string) => {
+            const result = sendMessage(content);
+            // After sending a message, refresh conversations to get the latest data
+            // without using a continuous polling approach
+            setTimeout(() => {
+                if (!isLoading && !isStreaming) {
+                    loadAllConversations();
+                }
+            }, 1000); // Short delay to ensure server has processed the message
+            return result;
+        },
+        [sendMessage, loadAllConversations, isLoading, isStreaming],
+    );
 
     // Return everything needed by components
     return {
@@ -68,7 +71,7 @@ export function useChat() {
         initialized,
 
         // Actions
-        sendMessage,
+        sendMessage: enhancedSendMessage,
         handleRetry,
         cancelResponse,
         switchConversation,
