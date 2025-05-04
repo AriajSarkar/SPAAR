@@ -47,13 +47,12 @@ export const safeStorage = {
                 try {
                     if (typeof localStorage !== 'undefined') {
                         const serialized = typeof value === 'string' ? value : JSON.stringify(value);
-
                         localStorage.setItem(key, serialized);
                     }
                     resolve();
                 } catch (error) {
                     console.error(`Error writing to localStorage: ${key}`, error);
-                    resolve();
+                    resolve(); // Still resolve to avoid hanging promises
                 }
             });
         });
@@ -75,7 +74,7 @@ export const safeStorage = {
                     resolve();
                 } catch (error) {
                     console.error(`Error removing from localStorage: ${key}`, error);
-                    resolve();
+                    resolve(); // Still resolve to avoid hanging promises
                 }
             });
         });
@@ -97,6 +96,62 @@ export const safeStorage = {
             return false;
         }
     },
+
+    /**
+     * Get all keys in localStorage that match a prefix
+     * @param prefix The prefix to match (optional)
+     * @returns Array of matching keys
+     */
+    getKeys(prefix?: string): string[] {
+        try {
+            if (typeof localStorage === 'undefined') {
+                return [];
+            }
+
+            const keys: string[] = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (!prefix || key.startsWith(prefix))) {
+                    keys.push(key);
+                }
+            }
+            return keys;
+        } catch (error) {
+            console.error('Error getting keys from localStorage', error);
+            return [];
+        }
+    },
+
+    /**
+     * Clear all items from localStorage
+     * @param prefix Only clear items with this prefix (optional)
+     * @returns Promise that resolves when operation is complete
+     */
+    clear(prefix?: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            queueMicrotask(() => {
+                try {
+                    if (typeof localStorage === 'undefined') {
+                        resolve();
+                        return;
+                    }
+
+                    if (prefix) {
+                        const keysToRemove = this.getKeys(prefix);
+                        keysToRemove.forEach((key) => {
+                            localStorage.removeItem(key);
+                        });
+                    } else {
+                        localStorage.clear();
+                    }
+                    resolve();
+                } catch (error) {
+                    console.error('Error clearing localStorage', error);
+                    resolve(); // Still resolve to avoid hanging promises
+                }
+            });
+        });
+    },
 };
 
 /**
@@ -108,4 +163,8 @@ export const STORAGE_KEYS = {
     CONVERSATION_PREFIX: 'heart_chat_conversation_',
     THEME: 'theme',
     USER_PREFERENCES: 'user_preferences',
+    AUTH_TOKEN: 'auth_token',
+    REFRESH_TOKEN: 'refresh_token',
+    USER_DATA: 'user_data',
+    LAST_ACTIVE: 'last_active_timestamp',
 };

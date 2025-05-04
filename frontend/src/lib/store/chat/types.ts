@@ -89,5 +89,37 @@ export interface ChatActions {
     _setError: (error: string | null) => void;
     _setPendingTask: (taskId: string, isPending: boolean) => void;
     _setInitialized: (initialized: boolean) => void;
-    _addOrUpdateConversation: (sessionId: string, title?: string) => void;
+    _addOrUpdateConversation: (sessionId: string, title?: string, shouldPersist?: boolean) => void;
 }
+
+// Combine state and actions for the store type
+export type FullChatStore = ChatState & ChatActions;
+
+/**
+ * Initial state fofrontend/src/components/Chat/ChatMessage.tsxr the chat store
+ */
+export const initialState: ChatState = {
+    // Chat message state
+    messages: [],
+    isLoading: false,
+    isStreaming: false,
+    currentStreamContent: '',
+    abortController: null,
+
+    // Session management
+    sessionId: null,
+    conversations: [],
+    loadingConversations: false,
+    deletingConversations: {},
+
+    // Error states
+    error: null,
+    retryCount: 0,
+
+    // Status tracking
+    pendingTasks: {},
+    initialized: false,
+
+    // Internal state tracking
+    _streamUpdateTimeoutId: null,
+};
