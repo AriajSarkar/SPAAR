@@ -21,25 +21,53 @@ export async function POST(request: NextRequest) {
                 try {
                     // Indirect backend call via proxy
                     const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-                    const apiResponse = await fetch(`${apiUrl}/api/v1/llm/generate/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Accept: 'text/event-stream',
-                        },
-                        body: JSON.stringify({
-                            prompt,
-                            session_id: sessionId,
-                            include_history: includeHistory,
-                        }),
-                    });
 
-                    // Check if the response is OK
-                    if (!apiResponse.ok) {
-                        throw new Error(`API error: ${apiResponse.status}`);
+                    // Implement retry mechanism
+                    let attempts = 0;
+                    const maxAttempts = 3;
+                    let apiResponse;
+
+                    while (attempts < maxAttempts) {
+                        try {
+                            apiResponse = await fetch(`${apiUrl}/api/v1/llm/generate/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Accept: 'text/event-stream',
+                                },
+                                body: JSON.stringify({
+                                    prompt,
+                                    session_id: sessionId,
+                                    include_history: includeHistory,
+                                }),
+                            });
+
+                            // If successful, break the retry loop
+                            if (apiResponse.ok) break;
+
+                            // If we get a 5xx error, retry
+                            if (apiResponse.status >= 500) {
+                                attempts++;
+                                // Wait with exponential backoff
+                                await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempts - 1)));
+                                continue;
+                            } else {
+                                // For 4xx errors, don't retry
+                                break;
+                            }
+                        } catch (error) {
+                            // For network errors, retry
+                            attempts++;
+                            if (attempts >= maxAttempts) throw error;
+                            await new Promise((resolve) => setTimeout(resolve, 1000 * Math.pow(2, attempts - 1)));
+                        }
                     }
 
-                    // Send a comment line first to prevent buffering
+                    if (!apiResponse || !apiResponse.ok) {
+                        throw new Error(`API error: ${apiResponse?.status || 'Network failure'}`);
+                    }
+
+                    // Send a ping comment to prevent buffering and keep the connection alive
                     controller.enqueue(encoder.encode(`: ping\n\n`));
 
                     // Use setTimeout to avoid buffering issues
@@ -49,19 +77,29 @@ export async function POST(request: NextRequest) {
                     const contentType = apiResponse.headers.get('content-type') || '';
 
                     if (contentType.includes('text/event-stream')) {
-                        // The backend already returns SSE, so we'll pass it through
+                        // The backend returns SSE, so pass it through with proper error handling
                         const reader = apiResponse.body?.getReader();
                         if (!reader) {
                             throw new Error('Failed to get reader from response');
                         }
 
-                        // Read and pass through the SSE stream
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
+                        try {
+                            // Read and pass through the SSE stream
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                if (done) break;
 
-                            // Pass through the raw chunk
-                            controller.enqueue(value);
+                                // Pass through the raw chunk
+                                controller.enqueue(value);
+                            }
+                        } catch (streamError) {
+                            console.error('Error reading stream:', streamError);
+                            // Send error as an event
+                            controller.enqueue(
+                                encoder.encode(
+                                    `data: ${JSON.stringify({ error: 'Connection interrupted. Please try again.' })}\n\n`,
+                                ),
+                            );
                         }
                     } else {
                         // The backend returns JSON, convert to SSE format
@@ -89,23 +127,50 @@ export async function POST(request: NextRequest) {
                                     responseText = jsonData.candidates[0].content.parts[0].text || '';
                                 }
 
-                                // Simulate streaming with words
-                                const words = responseText.split(/\s+/);
+                                // Simulate streaming with words, with improved chunking logic
+                                if (responseText) {
+                                    const words = responseText.split(/\s+/);
 
-                                for (let i = 0; i < words.length; i++) {
-                                    const chunk = {
+                                    // Use a more consistent chunking approach
+                                    const chunkSize = 3; // Send 3 words at a time for more natural reading
+
+                                    for (let i = 0; i < words.length; i += chunkSize) {
+                                        // Get next chunk of words (up to chunkSize)
+                                        const wordsChunk = words.slice(i, i + chunkSize);
+
+                                        // Format chunk with proper spacing
+                                        const text = wordsChunk.join(' ') + (i + chunkSize < words.length ? ' ' : '');
+
+                                        const chunk = {
+                                            candidates: [
+                                                {
+                                                    content: {
+                                                        parts: [{ text }],
+                                                        role: 'model',
+                                                    },
+                                                },
+                                            ],
+                                        };
+
+                                        controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+
+                                        // Add a short delay between chunks for readability
+                                        // Use consistent timing for more predictable UX
+                                        await new Promise((resolve) => setTimeout(resolve, 30));
+                                    }
+                                } else {
+                                    // Handle empty response case
+                                    const emptyChunk = {
                                         candidates: [
                                             {
                                                 content: {
-                                                    parts: [{ text: words[i] + (i < words.length - 1 ? ' ' : '') }],
+                                                    parts: [{ text: 'No response generated. Please try again.' }],
                                                     role: 'model',
                                                 },
                                             },
                                         ],
                                     };
-
-                                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
-                                    await new Promise((resolve) => setTimeout(resolve, Math.random() * 40 + 5));
+                                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(emptyChunk)}\n\n`));
                                 }
                             }
                         } catch (e) {
@@ -118,9 +183,18 @@ export async function POST(request: NextRequest) {
                     // Send the done signal
                     controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
                 } catch (error) {
-                    // Send error as an event
+                    // Send error as an event with detailed error information
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
+                    console.error('Streaming error:', errorMessage);
+                    controller.enqueue(
+                        encoder.encode(
+                            `data: ${JSON.stringify({
+                                error: errorMessage,
+                                recoverable: true,
+                                timestamp: new Date().toISOString(),
+                            })}\n\n`,
+                        ),
+                    );
                 } finally {
                     // Close the stream
                     controller.close();
@@ -134,8 +208,9 @@ export async function POST(request: NextRequest) {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache, no-transform',
                 Connection: 'keep-alive',
-                'Content-Encoding': 'none', // Prevent compression as mentioned in the discussion
+                'Content-Encoding': 'none', // Prevent compression which can cause buffering issues
                 'X-Accel-Buffering': 'no', // Prevents nginx buffering
+                'Transfer-Encoding': 'chunked', // Ensure proper chunked transfer
             },
         });
     } catch (error) {
@@ -145,6 +220,7 @@ export async function POST(request: NextRequest) {
         return new Response(
             JSON.stringify({
                 error: error instanceof Error ? error.message : 'Unknown error',
+                timestamp: new Date().toISOString(),
             }),
             {
                 status: 500,
