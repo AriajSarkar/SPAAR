@@ -1,15 +1,58 @@
+[build]
+command = "npm run build"
+publish = ".next"
+
+  [build.cache]
+  paths = [
+    ".next/cache"
+  ]
+
+  [build.environment]
+  NEXT_TELEMETRY_DISABLED = "1"
+
 [[plugins]]
 package = "@netlify/plugin-nextjs"
 
-[build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
+[[headers]]
+for = "/_next/static/*"
 
-[build]
-  command = "npm run build"
-  publish = ".next"
+  [headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
 
-  # ✅ Cache the Next.js build output for faster builds
-  [build.cache]
-    paths = [
-      ".next/cache"
-    ]
+[[redirects]]
+from = "/_next/image"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200
+
+  [redirects.query]
+  url = ":url"
+  w = ":width"
+  q = ":quality"
+
+[[redirects]]
+from = "/_ipx/*"
+to = "/.netlify/images?url=:url&w=:width&q=:quality"
+status = 200
+
+  [redirects.query]
+  url = ":url"
+  w = ":width"
+  q = ":quality"
+
+[context]
+
+  [context.production]
+
+    [[context.production.headers]]
+    for = "/_next/static/*"
+
+      [context.production.headers.values]
+      Cache-Control = "public, max-age=31536000, immutable"
+
+  [context.main]
+
+    [[context.main.headers]]
+    for = "/_next/static/*"
+
+      [context.main.headers.values]
+      Cache-Control = "public, max-age=31536000, immutable"
