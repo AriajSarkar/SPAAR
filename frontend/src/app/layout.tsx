@@ -2,9 +2,8 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import '../styles/globals.css';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
-import { CursorProvider } from '@/components/ui/cursor/useCursorState';
-import { StatefulCursor } from '@/components/ui/cursor/StatefulCursor';
 import { AuthProvider } from '@/lib/auth/AuthContext';
+import { NetworkStatus } from '@/components/ui/NetworkStatus';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -30,12 +29,10 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <ThemeProvider>
-                    <CursorProvider>
-                        <AuthProvider>
-                            <StatefulCursor follow={true} color="var(--heart-blue-500)" />
-                            {children}
-                        </AuthProvider>
-                    </CursorProvider>
+                    <AuthProvider>
+                        {children}
+                        <NetworkStatus position="top" zIndex={100} />
+                    </AuthProvider>
                 </ThemeProvider>
             </body>
         </html>

@@ -1,7 +1,6 @@
 'use client';
 
 import { FloatingNavbar } from '@/components/Navbar/FloatingNavbar';
-import { useHoverCursor } from '@/components/ui/cursor';
 import { RiHeartFill } from '@remixicon/react';
 
 export default function Home() {
@@ -66,17 +65,12 @@ function CursorAwareButton({
     href,
     label,
     primary = false,
-    tooltipContent,
 }: {
     href: string;
     label: string;
     primary?: boolean;
     tooltipContent: string;
 }) {
-    const cursorProps = useHoverCursor({
-        content: <span className="text-sm">{tooltipContent}</span>,
-    });
-
     const buttonClassName = `rounded-full border border-solid transition-colors flex items-center justify-center font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto ${
         primary
             ? 'border-transparent bg-[var(--heart-blue-500)] text-white hover:bg-[var(--heart-blue-700)]'
@@ -84,12 +78,7 @@ function CursorAwareButton({
     }`;
 
     return (
-        <a
-            href={href}
-            className={buttonClassName}
-            onMouseEnter={cursorProps.onMouseEnter}
-            onMouseLeave={cursorProps.onMouseLeave}
-        >
+        <a href={href} className={buttonClassName}>
             {label}
         </a>
     );
