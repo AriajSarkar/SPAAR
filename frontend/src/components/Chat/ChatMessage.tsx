@@ -1,9 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
-// Import Remix Icon for error state only
-import { RiRefreshLine } from '@remixicon/react';
+import { RiAlertLine } from '@remixicon/react';
 
 export interface ChatMessageProps {
     /**
@@ -26,11 +25,20 @@ export interface ChatMessageProps {
      * Whether the message represents an error state
      */
     error?: boolean;
+    /**
+     * Detailed error message (if available)
+     */
+    errorDetails?: string;
+    /**
+     * Custom styles to apply to the message container
+     */
+    className?: string;
 }
 
 /**
  * ChatMessage component displays a single message in the chat interface
  * User messages aligned right, bot messages aligned left
+ * Enhanced with better streaming and error handling
  */
 export const ChatMessage: React.FC<ChatMessageProps> = ({
     content,
@@ -38,12 +46,28 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     isStreaming = false,
     timestamp = new Date(),
     error = false,
+    errorDetails,
+    className,
 }) => {
+    // Format content based on state (streaming, error, etc.)
+    const formattedContent = useMemo(() => {
+        if (error) {
+            return content || 'An error occurred while processing your request.';
+        }
+
+        if (isStreaming && !content) {
+            return '';
+        }
+
+        return content;
+    }, [content, isStreaming, error]);
+
     return (
         <div
             className={cn(
                 'w-full py-6',
                 sender === 'bot' ? 'bg-background border-b border-[var(--border)]' : 'bg-muted/40',
+                className,
             )}
         >
             <div className="max-w-3xl mx-auto w-full px-4 md:px-6">
@@ -70,9 +94,17 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                             className={cn(
                                 'px-4 py-3 rounded-2xl',
                                 sender === 'user' ? 'bg-[var(--heart-blue-500)] text-white' : 'bg-card text-foreground',
-                                error && 'bg-destructive/20 text-destructive',
+                                error && 'bg-destructive/20 text-destructive border border-destructive/30',
                             )}
                         >
+                            {/* Show error icon for error messages */}
+                            {error && (
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <RiAlertLine className="h-4 w-4 text-destructive" />
+                                    <span className="text-sm font-medium">Error</span>
+                                </div>
+                            )}
+
                             <div
                                 className={cn(
                                     'text-sm whitespace-pre-wrap prose prose-sm max-w-none',
@@ -80,11 +112,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                                     'prose-headings:font-semibold prose-p:leading-relaxed prose-pre:p-0',
                                 )}
                             >
-                                {content || (isStreaming ? '' : 'No content')}
+                                {formattedContent}
 
                                 {/* Minimalist typing indicator while streaming */}
                                 {isStreaming && (
-                                    <span className="inline-block w-1.5 h-4 ml-0.5 -mb-0.5 bg-current opacity-70 animate-pulse"></span>
+                                    <span className="typing-indicator inline-flex">
+                                        <span className="typing-dot">.</span>
+                                        <span className="typing-dot">.</span>
+                                        <span className="typing-dot">.</span>
+                                    </span>
+                                )}
+
+                                {/* Show detailed error message if available */}
+                                {error && errorDetails && (
+                                    <div className="mt-2 text-xs opacity-80 border-t border-destructive/20 pt-2">
+                                        {errorDetails}
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -115,7 +158,7 @@ const formatTime = (date: Date) => {
 /**
  * MessageSkeleton component shows animated loading placeholders that look like messages
  */
-export const MessageSkeleton: React.FC<{ count?: number }> = ({ count = 1 }) => {
+export const MessageSkeleton: React.FC = () => {
     return (
         <div className="w-full py-6 bg-background border-b border-[var(--border)]">
             <div className="max-w-3xl mx-auto w-full px-4 md:px-6">
@@ -141,6 +184,26 @@ export const MessageSkeleton: React.FC<{ count?: number }> = ({ count = 1 }) => 
                         <div className="w-12 h-3 bg-muted/50 rounded-md ml-1"></div>
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+/**
+ * TypingIndicator component shows when the AI is thinking/responding
+ */
+export const TypingIndicator: React.FC = () => {
+    return (
+        <div className="p-4 max-w-3xl mx-auto w-full">
+            <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="w-5 h-5 rounded-full bg-[var(--heart-blue-500)]/20 flex items-center justify-center">
+                    <span className="typing-indicator inline-flex">
+                        <span className="typing-dot">.</span>
+                        <span className="typing-dot">.</span>
+                        <span className="typing-dot">.</span>
+                    </span>
+                </div>
+                <span className="text-xs">AI is typing</span>
             </div>
         </div>
     );

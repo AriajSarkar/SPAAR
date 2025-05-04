@@ -26,7 +26,8 @@ export function ChatHistoryItem({ conversation, isActive, onClick, onDelete }: C
             if (isNaN(date.getTime())) {
                 return '';
             }
-        } catch (e) {
+        } catch {
+            console.error('Invalid date string:', dateString);
             return '';
         }
 

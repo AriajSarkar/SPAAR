@@ -7,6 +7,21 @@ import { simulateStreamingResponse } from '../utils/streams';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
 /**
+ * Response structure from LLM API
+ */
+interface LLMResponse {
+    response: string;
+    candidates?: Array<{
+        content?: {
+            parts?: Array<{
+                text?: string;
+            }>;
+        };
+    }>;
+    [key: string]: unknown;
+}
+
+/**
  * Generate a response from the LLM with streaming support
  *
  * @param prompt The user's question or request
@@ -20,7 +35,7 @@ export async function generateLLMResponse(
     sessionId?: string,
     includeHistory: boolean = true,
     onChunk?: ((chunk: string) => void) | boolean,
-): Promise<any> {
+): Promise<LLMResponse> {
     try {
         // Check if onChunk is a function
         const streamCallback = typeof onChunk === 'function' ? onChunk : undefined;
@@ -63,7 +78,7 @@ export async function generateLLMResponse(
             }
 
             // Read the stream
-            let decoder = new TextDecoder();
+            const decoder = new TextDecoder();
             let buffer = '';
 
             while (true) {
@@ -117,7 +132,9 @@ export async function generateLLMResponse(
                 if (data.response) {
                     responseText = data.response;
                 } else if (data.candidates && data.candidates[0]?.content?.parts) {
-                    responseText = data.candidates[0].content.parts.map((part: any) => part.text || '').join('');
+                    responseText = data.candidates[0].content.parts
+                        .map((part: { text?: string }) => part.text || '')
+                        .join('');
                 }
 
                 // If we have a callback, simulate streaming
@@ -126,7 +143,7 @@ export async function generateLLMResponse(
                 }
 
                 return { response: responseText, ...data };
-            } catch (jsonError) {
+            } catch {
                 // If JSON parsing fails, try to process as text
                 const text = await response.text();
 
