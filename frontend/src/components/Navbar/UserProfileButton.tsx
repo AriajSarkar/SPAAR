@@ -14,16 +14,16 @@ interface UserProfileButtonProps {
  */
 export function UserProfileButton({ user, onClick, expanded = false }: UserProfileButtonProps) {
     const buttonRef = React.useRef<HTMLButtonElement>(null);
-    
+
     // Use effect to imperatively set the aria-expanded attribute
     React.useEffect(() => {
         if (buttonRef.current) {
             buttonRef.current.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         }
     }, [expanded]);
-    
+
     return (
-        <button 
+        <button
             ref={buttonRef}
             type="button"
             onClick={onClick}
