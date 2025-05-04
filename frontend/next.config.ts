@@ -40,6 +40,20 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // Enable build caching for faster CI builds
+  // This preserves the `.next/cache` directory between builds
+  // https://nextjs.org/docs/pages/guides/ci-build-caching
+  output: 'standalone',
+  
+  // Specify which files should trigger a page rebuild
+  // The `cachelife` validator is used to determine when the cache is stale
+  onDemandEntries: {
+    // Period (in ms) where the server will keep pages in the buffer
+    maxInactiveAge: 25 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
 };
 
 export default nextConfig;
