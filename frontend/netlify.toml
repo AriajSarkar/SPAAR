@@ -1,5 +1,16 @@
 [[plugins]]
-package = "@netlify/plugin-nextjs"
+  package = "@netlify/plugin-nextjs"
+
+# Enable caching of Next.js build outputs
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+# Cache configuration for Next.js
+[[plugins.inputs.cache]]
+  paths = [".next/cache"]
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
+  # Optimize pnpm install with proper hoisting
+  PNPM_FLAGS = "--shamefully-hoist"
