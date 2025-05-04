@@ -1,15 +1,5 @@
 [[plugins]]
-  package = "@netlify/plugin-nextjs"
-
-# Enable caching of Next.js build outputs
-[build]
-  command = "pnpm run build"
-  publish = ".next"
-
-# Cache configuration based on Next.js documentation
-[[plugins.inputs.cache]]
-  paths = [".next/cache"]
+package = "@netlify/plugin-nextjs"
 
 [build.environment]
-  # Disable Next.js telemetry in CI
   NEXT_TELEMETRY_DISABLED = "1"
