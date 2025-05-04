@@ -15,6 +15,7 @@ interface FloatingCardStackProps {
     className?: string;
     /**
      * Direction of stacking effect (vertical or horizontal)
+     * Note: Currently not used but kept for future implementation
      */
     stackDirection?: 'vertical' | 'horizontal';
     /**
@@ -23,10 +24,12 @@ interface FloatingCardStackProps {
     patternStyle?: 'dots' | 'lines' | 'grid' | 'none';
     /**
      * Whether to apply blur glass effect
+     * Note: Currently not used but kept for future implementation
      */
     glassEffect?: boolean;
     /**
      * Delay between animations in ms
+     * Note: Currently not used but kept for future implementation
      */
     staggerDelay?: number;
 }
@@ -38,9 +41,13 @@ interface FloatingCardStackProps {
 export const FloatingCardStack: React.FC<FloatingCardStackProps> = ({
     children,
     className,
-    stackDirection = 'vertical',
     patternStyle = 'none', // Default to no pattern for cleaner look
+    // The following props are preserved for future use but not currently implemented
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    stackDirection = 'vertical',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     glassEffect = false, // Default to no glass effect for cleaner look
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     staggerDelay = 50,
 }) => {
     const [mounted, setMounted] = useState(false);

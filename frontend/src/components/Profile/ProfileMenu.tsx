@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useAuth } from '@/lib/auth/AuthContext';
+import { motion } from 'motion/react';
+import { useAuthCheck } from '@/lib/auth/useAuthCheck';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import Link from 'next/link';
 import { RiSettings4Line, RiLogoutBoxLine, RiUserLine, RiInformationLine, RiPaintBrushLine } from '@remixicon/react';
@@ -16,7 +16,8 @@ interface ProfileMenuProps {
 }
 
 export function ProfileMenu({ onClose }: ProfileMenuProps) {
-    const { user, logout } = useAuth();
+    // Using our new useAuthCheck hook - no need to call refreshUserProfile unnecessarily
+    const { user, logout } = useAuthCheck({ refreshIfNeeded: false });
     const [activeTab, setActiveTab] = useState('profile');
 
     // Get user initials for avatar

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import Link from 'next/link';
 import { RiRobot2Line, RiMessage3Line } from '@remixicon/react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Button } from '../ui/button';
 import { useAuth } from '@/lib/auth/AuthContext';
 
@@ -29,7 +29,7 @@ export function FloatingNavbar() {
     const [lastScrollY, setLastScrollY] = useState(0);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    const router = useRouter();
+    // const router = useRouter();
     const pathname = usePathname();
 
     // Get authentication state from context
@@ -126,18 +126,10 @@ export function FloatingNavbar() {
                         <div className="h-10 w-10 rounded-full bg-[var(--color-secondary)] animate-pulse"></div>
                     ) : isAuthenticated ? (
                         <div className="relative">
-                            <UserProfileButton 
-                                user={user} 
-                                onClick={toggleUserMenu}
-                                expanded={userMenuOpen}
-                            />
+                            <UserProfileButton user={user} onClick={toggleUserMenu} expanded={userMenuOpen} />
 
                             {userMenuOpen && (
-                                <UserMenuDropdown 
-                                    user={user}
-                                    onClose={closeUserMenu}
-                                    onLogout={handleLogout}
-                                />
+                                <UserMenuDropdown user={user} onClose={closeUserMenu} onLogout={handleLogout} />
                             )}
                         </div>
                     ) : (
@@ -162,24 +154,16 @@ export function FloatingNavbar() {
                 {/* Mobile Navigation Button */}
                 <div className="flex items-center gap-2 md:hidden">
                     {/* User profile button for mobile */}
-                    {!loading && isAuthenticated && (
-                        <MobileUserProfileButton 
-                            user={user} 
-                            onClick={toggleUserMenu}
-                        />
-                    )}
+                    {!loading && isAuthenticated && <MobileUserProfileButton user={user} onClick={toggleUserMenu} />}
 
                     <ThemeToggle />
-                    <MobileMenuButton 
-                        isOpen={isMobileMenuOpen}
-                        onClick={toggleMobileMenu}
-                    />
+                    <MobileMenuButton isOpen={isMobileMenuOpen} onClick={toggleMobileMenu} />
                 </div>
             </motion.div>
 
             {/* Mobile Menu Dropdown */}
             {isMobileMenuOpen && (
-                <MobileMenuDropdown 
+                <MobileMenuDropdown
                     isAuthenticated={isAuthenticated}
                     isAuthPage={isAuthPage}
                     loading={loading}
@@ -188,12 +172,7 @@ export function FloatingNavbar() {
             )}
 
             {/* Mobile User Menu Dropdown */}
-            {userMenuOpen && !isMobileMenuOpen && (
-                <MobileUserMenu 
-                    user={user}
-                    onLogout={handleLogout}
-                />
-            )}
+            {userMenuOpen && !isMobileMenuOpen && <MobileUserMenu user={user} onLogout={handleLogout} />}
         </div>
     );
 }

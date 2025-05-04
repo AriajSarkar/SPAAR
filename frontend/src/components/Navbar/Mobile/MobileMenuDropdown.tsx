@@ -26,26 +26,14 @@ export function MobileMenuDropdown({ isAuthenticated, isAuthPage, loading, onLog
                 {/* Authentication links for mobile */}
                 {!loading && !isAuthenticated && !isAuthPage && (
                     <>
-                        <MobileNavItem
-                            href="/login"
-                            icon={<RiUser3Line className="h-5 w-5" />}
-                            label="Log in"
-                        />
-                        <MobileNavItem
-                            href="/register"
-                            icon={<RiUser3Line className="h-5 w-5" />}
-                            label="Register"
-                        />
+                        <MobileNavItem href="/login" icon={<RiUser3Line className="h-5 w-5" />} label="Log in" />
+                        <MobileNavItem href="/register" icon={<RiUser3Line className="h-5 w-5" />} label="Register" />
                     </>
                 )}
 
                 {!loading && isAuthenticated && (
                     <>
-                        <MobileNavItem
-                            href="/profile"
-                            icon={<RiUser3Line className="h-5 w-5" />}
-                            label="Profile"
-                        />
+                        <MobileNavItem href="/profile" icon={<RiUser3Line className="h-5 w-5" />} label="Profile" />
                         <button
                             onClick={onLogout}
                             className="flex items-center gap-3 rounded-md px-3 py-2 text-[var(--color-foreground)] transition-colors hover:bg-[var(--heart-blue-500)/10] text-left w-full"
