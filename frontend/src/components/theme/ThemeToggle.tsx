@@ -1,26 +1,35 @@
-"use client";
+'use client';
 
-import { useTheme } from "./ThemeProvider";
-import { RiMoonLine, RiSunLine } from "@remixicon/react";
+import { useTheme } from './ThemeProvider';
+import { RiMoonLine, RiSunLine } from '@remixicon/react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 /**
  * A toggle button component for switching between light and dark themes
+ * Uses shadcn/ui Button component for consistent styling
  */
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <button
+        <Button
             onClick={toggleTheme}
             type="button"
-            className="flex items-center justify-center p-2 rounded-full transition-colors hover:bg-[var(--heart-blue-500)] hover:text-white"
-            aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-        >
-            {theme === "light" ? (
-                <RiMoonLine className="w-5 h-5" />
-            ) : (
-                <RiSunLine className="w-5 h-5" />
+            size="icon"
+            variant="ghost"
+            className={cn(
+                'rounded-full w-9 h-9',
+                'data-[state=light]:bg-transparent data-[state=light]:text-[var(--foreground)]',
+                'data-[state=dark]:bg-transparent data-[state=dark]:text-[var(--foreground)]',
+                'hover:bg-[var(--secondary)] hover:text-[var(--secondary-foreground)]',
+                className,
             )}
-        </button>
+            data-state={theme}
+            aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+        >
+            {theme === 'light' ? <RiMoonLine className="h-5 w-5" /> : <RiSunLine className="h-5 w-5" />}
+            <span className="sr-only">Toggle theme</span>
+        </Button>
     );
 }

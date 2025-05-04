@@ -16,18 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
-
-# Simple root view to redirect to documentation
-def root_view(request):
-    return redirect('docs-index')
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', root_view, name='root'),  # Add a root handler
     path('admin/', admin.site.urls),
+    path('api/auth/', include('authentication.urls')),  # Use authentication app directly
     path('api/', include('api.urls')),
-    path('scrapper/', include('scrapper.urls')),
-    
-    # Documentation URLs
     path('docs/', include('docs.urls')),
 ]
+
+# Serve static files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

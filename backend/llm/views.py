@@ -5,22 +5,28 @@ from typing import Dict, List, Any
 
 from django.http import StreamingHttpResponse, JsonResponse
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 from .services import GeminiService
-from .models import LlmConversation, LlmMessage
+from .services.conversation_service import (
+    get_or_create_conversation,
+    get_conversation_if_authorized,
+    get_conversation_messages,
+    delete_conversation_if_authorized
+)
+from .models import LlmMessage
 
 logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def generate_text(request):
     """
     API endpoint for generating text using Gemini.
-    Always returns streaming responses.
+    Always returns streaming responses. Requires authentication.
     
     Request body should be JSON with the following structure:
     {
@@ -42,8 +48,15 @@ def generate_text(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Get or create conversation
-        conversation, created = LlmConversation.objects.get_or_create(session_id=session_id)
+        # Get or create conversation, associating with the authenticated user
+        conversation, created = get_or_create_conversation(session_id, request.user)
+        
+        # Check if user is authorized to access this conversation
+        if conversation is None:
+            return Response(
+                {"error": "You are not authorized to access this conversation"},
+                status=status.HTTP_403_FORBIDDEN
+            )
         
         # Get conversation history if requested
         conversation_history = []
@@ -137,10 +150,11 @@ def generate_text(request):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def get_conversation_history(request, session_id):
     """
     API endpoint for retrieving conversation history.
+    Requires authentication and only returns conversations owned by the user.
     
     Args:
         session_id: The ID of the conversation to retrieve
@@ -149,24 +163,20 @@ def get_conversation_history(request, session_id):
         A list of messages in the conversation
     """
     try:
-        conversation = LlmConversation.objects.get(session_id=session_id)
-        messages = LlmMessage.objects.filter(conversation=conversation).order_by('created_at')
+        # Verify user has permission to access this conversation
+        conversation = get_conversation_if_authorized(session_id, request.user)
         
-        history = []
-        for msg in messages:
-            history.append({
-                "role": msg.role,
-                "content": msg.content,
-                "created_at": msg.created_at.isoformat()
-            })
+        if not conversation:
+            return Response(
+                {"error": f"Conversation with session_id '{session_id}' not found or not authorized"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get the message history
+        history = get_conversation_messages(conversation)
         
         return Response({"history": history, "session_id": session_id})
         
-    except LlmConversation.DoesNotExist:
-        return Response(
-            {"error": f"Conversation with session_id '{session_id}' not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
     except Exception as e:
         logger.error(f"Error in get_conversation_history: {e}")
         return Response(
@@ -176,10 +186,11 @@ def get_conversation_history(request, session_id):
 
 
 @api_view(['DELETE'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def delete_conversation(request, session_id):
     """
     API endpoint for deleting a conversation.
+    Requires authentication and only deletes conversations owned by the user.
     
     Args:
         session_id: The ID of the conversation to delete
@@ -188,26 +199,18 @@ def delete_conversation(request, session_id):
         Success or error message
     """
     try:
-        try:
-            conversation = LlmConversation.objects.get(session_id=session_id)
-        except LlmConversation.DoesNotExist:
+        # Delete if authorized
+        success, message, messages_count = delete_conversation_if_authorized(session_id, request.user)
+        
+        if not success:
             return Response(
-                {"error": f"Conversation with session_id '{session_id}' not found"},
+                {"error": message},
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        # Delete all messages associated with the conversation
-        messages_count = LlmMessage.objects.filter(conversation=conversation).count()
-        LlmMessage.objects.filter(conversation=conversation).delete()
-        
-        # Delete the conversation
-        conversation.delete()
-        
-        logger.info(f"🗑️ DELETED CONVERSATION: Session ID '{session_id}' with {messages_count} messages")
-        
         return Response({
             "success": True,
-            "message": f"Conversation with session_id '{session_id}' and all its messages deleted successfully"
+            "message": message
         })
         
     except Exception as e:
