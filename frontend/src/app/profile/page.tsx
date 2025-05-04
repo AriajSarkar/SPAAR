@@ -1,34 +1,29 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { useAuth } from '@/lib/auth/AuthContext';
+import { useAuthCheck } from '@/lib/auth/useAuthCheck';
 import { FloatingNavbar } from '@/components/Navbar/FloatingNavbar';
-import { div } from 'motion/react-client';
 
 export default function ProfilePage() {
     const router = useRouter();
-    const { user, loading, logout, error: authError, refreshUserProfile } = useAuth();
+    // Use our new hook with controlled refresh behavior
+    const {
+        user,
+        loading,
+        error: authError,
+        logout,
+        refreshUserProfile,
+    } = useAuthCheck({
+        redirectToLogin: true,
+        refreshIfNeeded: true, // Only refreshes if cache is stale
+    });
+
     const [localLoading, setLocalLoading] = useState(false);
     const [localError, setLocalError] = useState<string | null>(null);
-    const [hasRefreshed, setHasRefreshed] = useState(false);
-
-    // Check authentication status on mount
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push('/login');
-            return;
-        }
-
-        // Only refresh user profile once when the component mounts and user exists
-        if (user && !hasRefreshed && !loading) {
-            refreshUserProfile();
-            setHasRefreshed(true);
-        }
-    }, [loading, user, router, hasRefreshed]);
 
     // Handle manual refresh with proper error handling
     const handleManualRefresh = useCallback(async () => {
