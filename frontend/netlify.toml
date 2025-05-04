@@ -1,14 +1,17 @@
 [build]
-command = "npm run build"
+command = "pnpm run build"
 publish = ".next"
 
   [build.cache]
   paths = [
-    ".next/cache"
+    ".next/cache",
+    "node_modules/.cache",
+    "node_modules/.pnpm-store"
   ]
 
   [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_ENABLE_STANDALONE = "true"
 
 [[plugins]]
 package = "@netlify/plugin-nextjs"

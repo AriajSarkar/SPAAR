@@ -4,6 +4,10 @@ import type { NextConfig } from "next";
  * Next.js configuration with proxy settings for the heart-themed chatbot
  * Enables proxying API requests to avoid CORS issues and simplify endpoint URLs
  */
+
+  const isStandalone = process.env.NEXT_ENABLE_STANDALONE === "true";
+
+
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -44,7 +48,7 @@ const nextConfig: NextConfig = {
   // Enable build caching for faster CI builds
   // This preserves the `.next/cache` directory between builds
   // https://nextjs.org/docs/pages/guides/ci-build-caching
-  output: 'standalone',
+  output: isStandalone ? "standalone" : undefined,
   
   // Specify which files should trigger a page rebuild
   // The `cachelife` validator is used to determine when the cache is stale
