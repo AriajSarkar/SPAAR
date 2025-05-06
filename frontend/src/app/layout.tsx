@@ -5,6 +5,9 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { AuthProvider } from '@/lib/auth/AuthContext';
 import { NetworkStatus } from '@/components/ui/NetworkStatus';
 
+// vercel
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 const geistSans = Geist({
     variable: '--font-geist-sans',
     subsets: ['latin'],
@@ -27,6 +30,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
+            <SpeedInsights />
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <ThemeProvider>
                     <AuthProvider>
